@@ -1,16 +1,51 @@
 <button
-id="btnSave"
-class="btn btn-success"
-onclick="updatePersonnel()">
+    id="btnSave"
+    type="button"
+    class="btn btn-success"
+    onclick="updatePersonnel()">
 
-💾 บันทึกการแก้ไข
+    💾 บันทึกการแก้ไข
 
 </button>
 
 <a
-href="dashboard.html"
-class="btn btn-secondary">
+    href="dashboard.html"
+    class="btn btn-secondary">
 
-ยกเลิก
+    ยกเลิก
 
 </a>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Config -->
+<script src="js/config.js"></script>
+
+<!-- Authentication -->
+<script src="js/auth.js"></script>
+
+<!-- Edit -->
+<script src="js/edit.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ตรวจสอบการ Login
+    checkLogin();
+
+    // ถ้ามี id ให้โหลดข้อมูล
+    if (typeof loadPersonnel === "function") {
+        loadPersonnel();
+    }
+
+});
+
+</script>
+
+</body>
+</html>
