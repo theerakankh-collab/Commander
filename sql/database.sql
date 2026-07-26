@@ -49,3 +49,6 @@ wife_name text,
 phone varchar(30)
 
 );
+
+ALTER TABLE personnel
+ADD COLUMN role text DEFAULT 'user';
