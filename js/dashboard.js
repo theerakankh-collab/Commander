@@ -186,3 +186,11 @@ url:"https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
 });
 
 }
+
+function view(id){
+
+window.location.href=
+
+"profile.html?id="+id;
+
+}
