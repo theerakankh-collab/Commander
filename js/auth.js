@@ -1,33 +1,128 @@
-async function checkLogin(){
+// =============================================
+// auth.js
+// Military Directory
+// Authentication ด้วย Supabase
+// =============================================
 
-const {
+// ------------------------------
+// ตรวจสอบการ Login
+// ------------------------------
+async function checkLogin() {
 
-data:{session}
+    try {
 
-}=await supabase.auth.getSession();
+        const {
+            data: { session },
+            error
+        } = await supabase.auth.getSession();
 
-if(!session){
+        if (error) throw error;
 
-location.href="login.html";
+        if (!session) {
+
+            window.location.replace("login.html");
+            return;
+
+        }
+
+        // แสดงชื่อผู้ใช้ (ถ้ามี Element)
+        const userName = document.getElementById("userName");
+
+        if (userName) {
+
+            userName.innerHTML =
+                session.user.email;
+
+        }
+
+    } catch (err) {
+
+        console.error("Check Login Error :", err);
+
+        window.location.replace("login.html");
+
+    }
 
 }
 
+
+// ------------------------------
+// Login
+// ------------------------------
+async function login(email, password) {
+
+    try {
+
+        const { error } =
+            await supabase.auth.signInWithPassword({
+
+                email,
+                password
+
+            });
+
+        if (error) throw error;
+
+        window.location.replace("dashboard.html");
+
+    } catch (err) {
+
+        alert(err.message);
+
+    }
+
 }
+
+
+// ------------------------------
+// Logout
+// ------------------------------
 async function logout() {
-  const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+    if (!confirm("ต้องการออกจากระบบใช่หรือไม่ ?"))
+        return;
 
-  window.location.href = "login.html";
+    try {
+
+        const { error } =
+            await supabase.auth.signOut();
+
+        if (error) throw error;
+
+        window.location.replace("login.html");
+
+    } catch (err) {
+
+        alert(err.message);
+
+    }
+
 }
 
-async function logout(){
 
-await supabase.auth.signOut();
+// ------------------------------
+// ดึงข้อมูล User ปัจจุบัน
+// ------------------------------
+async function getCurrentUser() {
 
-location.href="login.html";
+    const {
+        data: { user }
+    } = await supabase.auth.getUser();
+
+    return user;
+
+}
+
+
+// ------------------------------
+// ตรวจสอบสิทธิ์
+// ------------------------------
+async function isLoggedIn() {
+
+    const {
+        data: { session }
+    } = await supabase.auth.getSession();
+
+    return session !== null;
 
 }
