@@ -1,108 +1,221 @@
-// 1. ปรับปรุงฟังก์ชัน count ให้ดึงแค่จำนวนแถวจาก Supabase (ไม่ดึงข้อมูลทั้งหมด)
-async function count(table) {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${table}?select=id`,
-      {
-        method: "GET",
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY,
-          Prefer: "count=exact",
-          Range: "0-0" // ไม่โหลดเนื้อหา ดึงแค่ Header นับจำนวน
-        }
-      }
-    );
-    const contentRange = res.headers.get("content-range");
-    if (contentRange) {
-      // ตัวอย่าง content-range: "0-0/150" -> ตัดเอาเฉพาะเลข 150
-      return parseInt(contentRange.split("/")[1], 10) || 0;
-    }
-    return 0;
-  } catch (error) {
-    console.error(`Error counting ${table}:`, error);
-    return 0;
-  }
-}
+// =========================================
+// dashboard.js
+// ระบบกำลังพล
+// =========================================
 
-// โหลดสรุปจำนวน
-async function loadSummary() {
-  document.getElementById("totalPersonnel").innerHTML = await count("personnel");
-  document.getElementById("totalCommander").innerHTML = await count("commanders");
-  document.getElementById("totalWife").innerHTML = await count("wives");
-}
+checkLogin();
 
 let personnel = [];
 
-// โหลดข้อมูลบุคลากร
-async function loadPersonnel() {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/personnel?select=*`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
-    personnel = await res.json();
-    
-    // แสดงตาราง
-    renderTable(personnel);
+// =============================
+// โหลด Dashboard
+// =============================
+window.addEventListener("DOMContentLoaded", async () => {
 
-    // นับจำนวนคนที่มีเบอร์โทรศัพท์ (เช็กกันค่า null/undefined)
-    const phoneCount = personnel.filter(x => x.phone && x.phone.trim() !== "").length;
-    document.getElementById("totalPhone").innerHTML = phoneCount;
-  } catch (error) {
-    console.error("Error loading personnel:", error);
-  }
-}
+    await loadSummary();
 
-// ฟังก์ชันแสดงผลตาราง + DataTables (เหลือแค่อันเดียว)
-function renderTable(data) {
-  let html = "";
-  data.forEach(p => {
-    html += `
-      <tr>
-        <td>${p.rank || ''}</td>
-        <td>${p.firstname || ''} ${p.lastname || ''}</td>
-        <td>${p.position || ''}</td>
-        <td>${p.phone || '-'}</td>
-        <td>
-          <button class="btn btn-success btn-sm" onclick="view(${p.id})">
-            รายละเอียด
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+    await loadPersonnel();
 
-  $("#result").html(html);
+});
 
-  // Re-initialize DataTables
-  if ($.fn.DataTable.isDataTable("#personTable")) {
-    $("#personTable").DataTable().destroy();
-  }
+// =============================
+// โหลดสรุป
+// =============================
+async function loadSummary() {
 
-  const table = $("#personTable").DataTable({
-    pageLength: 20,
-    responsive: true,
-    language: {
-      url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
+    try {
+
+        const { count: totalPersonnel } = await supabase
+            .from("personnel")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        const { count: totalCommander } = await supabase
+            .from("commanders")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        const { count: totalWife } = await supabase
+            .from("wives")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        document.getElementById("totalPersonnel").textContent =
+            totalPersonnel || 0;
+
+        document.getElementById("totalCommander").textContent =
+            totalCommander || 0;
+
+        document.getElementById("totalWife").textContent =
+            totalWife || 0;
+
+    } catch (err) {
+
+        console.error(err);
+
     }
-  });
 
-  // เชื่อมต่อช่อง #search Custom เข้ากับระบบค้นหาของ DataTables Direct
-  $("#search").off("keyup").on("keyup", function () {
-    table.search(this.value).draw();
-  });
 }
 
-function view(id) {
-  window.location.href = "profile.html?id=" + id;
+// =============================
+// โหลดข้อมูลกำลังพล
+// =============================
+async function loadPersonnel() {
+
+    try {
+
+        const { data, error } = await supabase
+            .from("personnel")
+            .select("*")
+            .order("rank")
+            .order("firstname");
+
+        if (error) throw error;
+
+        personnel = data || [];
+
+        renderTable(personnel);
+
+        const phoneCount =
+            personnel.filter(p => p.phone && p.phone.trim() !== "").length;
+
+        document.getElementById("totalPhone").textContent =
+            phoneCount;
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert(err.message);
+
+    }
+
 }
 
-// เรียกใช้งานเมื่อเริ่มต้น
-loadSummary();
-loadPersonnel();
+// =============================
+// แสดงตาราง
+// =============================
+function renderTable(data) {
+
+    let html = "";
+
+    data.forEach(p => {
+
+        html += `
+        <tr>
+
+            <td>${p.rank ?? ""}</td>
+
+            <td>${p.firstname ?? ""} ${p.lastname ?? ""}</td>
+
+            <td>${p.position ?? ""}</td>
+
+            <td>${p.phone ?? "-"}</td>
+
+            <td>
+
+                <a
+                    href="profile.html?id=${p.id}"
+                    class="btn btn-success btn-sm">
+
+                    รายละเอียด
+
+                </a>
+
+                <a
+                    href="edit.html?id=${p.id}"
+                    class="btn btn-warning btn-sm">
+
+                    แก้ไข
+
+                </a>
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deletePersonnel(${p.id})">
+
+                    ลบ
+
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("result").innerHTML = html;
+
+    if ($.fn.DataTable.isDataTable("#personTable")) {
+
+        $("#personTable").DataTable().destroy();
+
+    }
+
+    const table = $("#personTable").DataTable({
+
+        pageLength: 20,
+
+        responsive: true,
+
+        language: {
+
+            url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
+
+        }
+
+    });
+
+    $("#search")
+        .off("keyup")
+        .on("keyup", function () {
+
+            table.search(this.value).draw();
+
+        });
+
+}
+
+// =============================
+// ลบข้อมูล
+// =============================
+async function deletePersonnel(id) {
+
+    if (!confirm("ยืนยันการลบข้อมูล ?")) return;
+
+    try {
+
+        const { error } = await supabase
+            .from("personnel")
+            .delete()
+            .eq("id", id);
+
+        if (error) throw error;
+
+        await loadSummary();
+
+        await loadPersonnel();
+
+    } catch (err) {
+
+        alert(err.message);
+
+    }
+
+}
+
+// =============================
+// Logout
+// =============================
+function logoutSystem() {
+
+    logout();
+
+}
