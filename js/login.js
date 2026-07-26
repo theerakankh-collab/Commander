@@ -1,33 +1,68 @@
-document
-.getElementById("loginBtn")
-.addEventListener("click", login);
+// ======================================
+// login.js
+// ระบบ Login
+// ======================================
 
-async function login(){
+document.addEventListener("DOMContentLoaded", () => {
 
-const email =
-document.getElementById("email").value;
+    const loginBtn = document.getElementById("loginBtn");
 
-const password =
-document.getElementById("password").value;
+    if (loginBtn) {
+        loginBtn.addEventListener("click", login);
+    }
 
-const {error} =
-await supabase.auth.signInWithPassword({
-
-email,
-
-password
+    // กด Enter เพื่อ Login
+    document.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            login();
+        }
+    });
 
 });
 
-if(error){
+async function login() {
 
-document.getElementById("msg").innerHTML=
-error.message;
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const msg = document.getElementById("msg");
+    const btn = document.getElementById("loginBtn");
 
-return;
+    msg.innerHTML = "";
 
-}
+    // ตรวจสอบข้อมูล
+    if (!email) {
+        msg.innerHTML = "กรุณากรอกอีเมล";
+        return;
+    }
 
-location.href="dashboard.html";
+    if (!password) {
+        msg.innerHTML = "กรุณากรอกรหัสผ่าน";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = "กำลังเข้าสู่ระบบ...";
+
+    try {
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) throw error;
+
+        window.location.replace("dashboard.html");
+
+    } catch (err) {
+
+        msg.innerHTML = err.message;
+
+    } finally {
+
+        btn.disabled = false;
+        btn.innerHTML = "เข้าสู่ระบบ";
+
+    }
 
 }
