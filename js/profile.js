@@ -78,3 +78,91 @@ async function loadPersonnel() {
     }
 
 }
+
+
+
+// =======================================
+// profile.js
+// =======================================
+
+checkLogin();
+
+const id = new URLSearchParams(window.location.search).get("id");
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    if (!id) {
+        alert("ไม่พบรหัสข้อมูล");
+        window.location.href = "dashboard.html";
+        return;
+    }
+
+    loadPersonnel();
+
+});
+
+async function loadPersonnel() {
+
+    try {
+
+        const { data, error } = await supabase
+            .from("personnel")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error) throw error;
+
+        document.getElementById("fullname").textContent =
+            `${data.rank || ""} ${data.firstname || ""} ${data.lastname || ""}`;
+
+        document.getElementById("rank").textContent =
+            data.rank || "-";
+
+        document.getElementById("firstname").textContent =
+            data.firstname || "-";
+
+        document.getElementById("lastname").textContent =
+            data.lastname || "-";
+
+        document.getElementById("position").textContent =
+            data.position || "-";
+
+        document.getElementById("nickname").textContent =
+            data.nickname || "-";
+
+        document.getElementById("class").textContent =
+            data.class || "-";
+
+        document.getElementById("phone").textContent =
+            data.phone || "-";
+
+        document.getElementById("remark").textContent =
+            data.remark || "-";
+
+        const photo = document.getElementById("photo");
+
+        if (photo) {
+
+            photo.src = data.photo || "images/no-photo.png";
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert(err.message);
+
+        window.location.href = "dashboard.html";
+
+    }
+
+}
+
+function goBack() {
+
+    window.location.href = "dashboard.html";
+
+}
+
