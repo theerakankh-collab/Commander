@@ -1,1 +1,23 @@
+body{
 
+background:#eef2f5;
+
+}
+
+.card{
+
+border-radius:15px;
+
+box-shadow:0 2px 10px rgba(0,0,0,.15);
+
+margin-bottom:15px;
+
+}
+
+.btn{
+
+margin-right:10px;
+
+margin-top:10px;
+
+}
