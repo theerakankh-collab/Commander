@@ -23,3 +23,11 @@ async function logout() {
 
   window.location.href = "login.html";
 }
+
+async function logout(){
+
+await supabase.auth.signOut();
+
+location.href="login.html";
+
+}
