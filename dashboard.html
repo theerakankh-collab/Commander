@@ -7,6 +7,136 @@
 </head>
 <body>
 
+<div class="wrapper">
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <h3>📘 Military</h3>
+
+        </div>
+
+        <ul>
+
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+
+            <li><a href="personnel.html">👤 กำลังพล</a></li>
+
+            <li><a href="commanders.html">⭐ ผู้บังคับบัญชา</a></li>
+
+            <li><a href="wives.html">👩 ภริยา</a></li>
+
+            <li><a href="reports.html">📊 รายงาน</a></li>
+
+            <li><a href="import.html">📥 Import Excel</a></li>
+
+            <li><a href="settings.html">⚙️ ตั้งค่า</a></li>
+
+            <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+
+        </ul>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <h2>Dashboard</h2>
+
+            <div>
+
+                👤 Admin
+
+            </div>
+
+        </header>
+
+        <section class="cards">
+
+            <div class="card green">
+
+                <h2 id="totalPersonnel">0</h2>
+
+                <p>กำลังพล</p>
+
+            </div>
+
+            <div class="card blue">
+
+                <h2 id="totalCommander">0</h2>
+
+                <p>ผู้บังคับบัญชา</p>
+
+            </div>
+
+            <div class="card yellow">
+
+                <h2 id="totalWife">0</h2>
+
+                <p>ภริยา</p>
+
+            </div>
+
+            <div class="card red">
+
+                <h2 id="totalPhone">0</h2>
+
+                <p>เบอร์โทร</p>
+
+            </div>
+
+        </section>
+
+        <section class="search-box">
+
+            <input
+
+            id="search"
+
+            placeholder="ค้นหา ชื่อ ตำแหน่ง โทรศัพท์">
+
+        </section>
+
+        <section>
+
+            <table id="personTable">
+
+                <thead>
+
+                <tr>
+
+                    <th>ยศ</th>
+
+                    <th>ชื่อ</th>
+
+                    <th>ตำแหน่ง</th>
+
+                    <th>โทร</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody id="result"></tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+    
+    <body>
+
     <!-- ปุ่ม Logout -->
     <button class="btn btn-danger" onclick="logout()">
         Logout
