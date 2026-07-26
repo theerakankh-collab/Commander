@@ -35,3 +35,52 @@ document.getElementById("status").innerHTML=
 reader.readAsBinaryString(file);
 
 }
+
+async function save(r){
+
+await fetch(
+
+`${SUPABASE_URL}/rest/v1/personnel`,
+
+{
+
+method:"POST",
+
+headers:{
+
+apikey:SUPABASE_KEY,
+
+Authorization:"Bearer "+SUPABASE_KEY,
+
+"Content-Type":"application/json",
+
+Prefer:"return=minimal"
+
+},
+
+body:JSON.stringify({
+
+rank:r["ยศ"],
+
+firstname:r["ชื่อ"],
+
+lastname:r["สกุล"],
+
+nickname:r["ชื่อเล่น"],
+
+position:r["ตำแหน่ง"],
+
+class:r["ตท."],
+
+phone:r["โทรศัพท์"],
+
+remark:r["หมายเหตุ"]
+
+})
+
+}
+
+);
+
+}
+
