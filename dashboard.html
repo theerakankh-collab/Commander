@@ -1,210 +1,127 @@
 <!DOCTYPE html>
 <html lang="th">
-
-  <link rel="stylesheet"
-href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-    
-    <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-</head>
+    <title>Dashboard - ระบบจัดการกำลังพล</title>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Bootstrap CSS (จำเป็นสำหรับการใช้งานคลาส btn, table ฯลฯ) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
+    <!-- DataTables Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+    
+    <!-- Custom CSS (ถ้ามี) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
 
 <div class="wrapper">
 
     <!-- Sidebar -->
-
     <aside class="sidebar">
-
         <div class="logo">
-
             <h3>📘 Military</h3>
-
         </div>
-
         <ul>
-
             <li><a href="dashboard.html">🏠 Dashboard</a></li>
-
             <li><a href="personnel.html">👤 กำลังพล</a></li>
-
             <li><a href="commanders.html">⭐ ผู้บังคับบัญชา</a></li>
-
             <li><a href="wives.html">👩 ภริยา</a></li>
-
             <li><a href="reports.html">📊 รายงาน</a></li>
-          
-
             <li><a href="import.html">📥 Import Excel</a></li>
-
             <li><a href="settings.html">⚙️ ตั้งค่า</a></li>
-
             <li><a href="#" onclick="logout()">🚪 Logout</a></li>
-
         </ul>
-
     </aside>
 
-    <!-- Main -->
-
+    <!-- Main Content -->
     <main class="main">
 
-        <header class="topbar">
-
+        <!-- Topbar -->
+        <header class="topbar d-flex justify-content-between align-items-center mb-4">
             <h2>Dashboard</h2>
-
-            <div>
-
-                👤 Admin
-
+            <div class="user-info d-flex align-items-center gap-3">
+                <span>👤 Admin</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="logout()">🚪 Logout</button>
             </div>
-
         </header>
 
-        <section class="cards">
-
+        <!-- Stats Cards -->
+        <section class="cards mb-4">
             <div class="card green">
-
                 <h2 id="totalPersonnel">0</h2>
-
                 <p>กำลังพล</p>
-
             </div>
-
             <div class="card blue">
-
                 <h2 id="totalCommander">0</h2>
-
                 <p>ผู้บังคับบัญชา</p>
-
             </div>
-
             <div class="card yellow">
-
                 <h2 id="totalWife">0</h2>
-
                 <p>ภริยา</p>
-
             </div>
-
             <div class="card red">
-
                 <h2 id="totalPhone">0</h2>
-
                 <p>เบอร์โทร</p>
-
             </div>
-
         </section>
 
-        <section class="search-box">
-
-            <input
-
-            id="search"
-
-            placeholder="ค้นหา ชื่อ ตำแหน่ง โทรศัพท์">
-
+        <!-- Custom Search Box -->
+        <section class="search-box mb-3">
+            <input id="search" class="form-control" placeholder="ค้นหา ชื่อ ตำแหน่ง โทรศัพท์">
         </section>
 
-        <section>
-
-  <a
-href="add.html"
-class="btn btn-success">
-
-➕ เพิ่มกำลังพล
-
-</a>
+        <!-- Table & Actions -->
+        <section class="data-table-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="m-0">รายการกำลังพล</h4>
+                <a href="add.html" class="btn btn-success">
+                    ➕ เพิ่มกำลังพล
+                </a>
+            </div>
           
-          <table id="personTable" class="table table-striped table-hover">
-
-<thead>
-
-<tr>
-
-<th>ยศ</th>
-
-<th>ชื่อ-สกุล</th>
-
-<th>ตำแหน่ง</th>
-
-<th>โทรศัพท์</th>
-
-<th>จัดการ</th>
-
-</tr>
-
-</thead>
-
-<tbody id="result"></tbody>
-
-</table>
-            
-<!--
-            <table id="personTable">
-
+            <table id="personTable" class="table table-striped table-hover w-100">
                 <thead>
-
-                <tr>
-
-                    <th>ยศ</th>
-
-                    <th>ชื่อ</th>
-
-                    <th>ตำแหน่ง</th>
-
-                    <th>โทร</th>
-
-                </tr>
-
+                    <tr>
+                        <th>ยศ</th>
+                        <th>ชื่อ-สกุล</th>
+                        <th>ตำแหน่ง</th>
+                        <th>โทรศัพท์</th>
+                        <th>จัดการ</th>
+                    </tr>
                 </thead>
-
-                <tbody id="result"></tbody>
-
-            </table> -->
-
+                <tbody id="result">
+                    <!-- ข้อมูลจะถูกดึงมาใส่ด้วย JS -->
+                </tbody>
+            </table>
         </section>
 
     </main>
 
 </div>
 
-</body>
-    
-    <body>
+<!-- ---------------- JAVASCRIPTS ---------------- -->
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <!-- ปุ่ม Logout -->
-    <button class="btn btn-danger" onclick="logout()">
-        Logout
-    </button>
+<!-- DataTables & Bootstrap JS -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
-    <!-- นำเข้าสคริปต์ภายนอก (เรียกใช้เพียงครั้งเดียว) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- เรียกใช้ฟังก์ชันตรวจสอบสิทธิ์การเข้าใช้งาน -->
-    <script>
-        checkLogin();
-    </script>
+<!-- Custom App Scripts -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+
+<!-- Authentication Check -->
+<script>
+    // ตรวจสอบการเข้าสู่ระบบทันทีเมื่อโหลดหน้าเว็บ
+    checkLogin();
+</script>
 
 </body>
 </html>
-
-<a
-href="add.html"
-class="btn btn-success">
-
-➕ เพิ่มกำลังพล
-
-</a>
