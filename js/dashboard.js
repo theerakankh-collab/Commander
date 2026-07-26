@@ -125,4 +125,64 @@ JSON.stringify(x)
 
 loadPersonnel();
 
+function show(data){
 
+let html="";
+
+data.forEach(p=>{
+
+html+=`
+
+<tr>
+
+<td>${p.rank}</td>
+
+<td>${p.firstname} ${p.lastname}</td>
+
+<td>${p.position}</td>
+
+<td>${p.phone}</td>
+
+<td>
+
+<button
+
+class="btn btn-success btn-sm"
+
+onclick="view(${p.id})">
+
+รายละเอียด
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+$("#result").html(html);
+
+if($.fn.DataTable.isDataTable("#personTable")){
+
+$("#personTable").DataTable().destroy();
+
+}
+
+$("#personTable").DataTable({
+
+pageLength:20,
+
+responsive:true,
+
+language:{
+
+url:"https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
+
+}
+
+});
+
+}
