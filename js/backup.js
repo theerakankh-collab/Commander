@@ -61,3 +61,19 @@ async function restoreDatabase(file) {
     }
 
 }
+
+function setProgress(percent, message = "") {
+
+    const bar = document.getElementById("progressBar");
+
+    if (bar) {
+
+        bar.style.width = percent + "%";
+
+        bar.innerHTML = percent + "%";
+
+    }
+
+    document.getElementById("status").innerHTML = message;
+
+}
