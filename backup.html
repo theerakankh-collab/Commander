@@ -1,27 +1,21 @@
 <input
-
 type="file"
-
 id="backupFile"
-
-accept=".json">
+accept=".json"
+class="form-control">
 
 <button
-
-class="btn btn-success"
-
+class="btn btn-success mt-3"
 onclick="backupDatabase()">
 
-Backup
+💾 Backup
 
 </button>
 
 <button
-
-class="btn btn-danger"
-
+class="btn btn-danger mt-3"
 onclick="restoreDatabase(document.getElementById('backupFile').files[0])">
 
-Restore
+📂 Restore
 
 </button>
