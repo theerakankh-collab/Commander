@@ -1,43 +1,63 @@
-async function backupDatabase(){
+// =====================================
+// backup.js
+// Backup / Restore
+// =====================================
 
-const {data,error}=
+checkLogin();
 
-await supabase
+// Backup
+async function backupDatabase() {
 
-.from("personnel")
+    const { data, error } = await supabase
+        .from("personnel")
+        .select("*");
 
-.select("*");
+    if (error) {
+        alert(error.message);
+        return;
+    }
 
-if(error){
+    const blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        { type: "application/json" }
+    );
 
-alert(error.message);
+    const a = document.createElement("a");
 
-return;
+    a.href = URL.createObjectURL(blob);
+
+    a.download = "personnel_backup.json";
+
+    a.click();
 
 }
 
-const blob=
+// Restore
+async function restoreDatabase(file) {
 
-new Blob(
+    if (!file) {
+        alert("กรุณาเลือกไฟล์ Backup");
+        return;
+    }
 
-[JSON.stringify(data,null,2)],
+    try {
 
-{
+        const text = await file.text();
 
-type:"application/json"
+        const rows = JSON.parse(text);
 
-}
+        const { error } = await supabase
+            .from("personnel")
+            .upsert(rows);
 
-);
+        if (error) throw error;
 
-const a=document.createElement("a");
+        alert("✅ Restore สำเร็จ");
 
-a.href=
+    } catch (err) {
 
-URL.createObjectURL(blob);
+        alert(err.message);
 
-a.download="backup.json";
-
-a.click();
+    }
 
 }
