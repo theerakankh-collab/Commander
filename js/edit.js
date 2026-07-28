@@ -1,97 +1,264 @@
-// ==========================================
+// ==============================================
 // edit.js
-// แก้ไขข้อมูลกำลังพล
-// ==========================================
+// Military Directory System
+// Edit Personnel
+// Version 3.0
+// ==============================================
 
-checkLogin();
+"use strict";
 
-const id = new URLSearchParams(window.location.search).get("id");
+let personnelId = null;
 
-window.addEventListener("DOMContentLoaded", () => {
+// ==============================================
 
-    if (!id) {
-        alert("ไม่พบรหัสข้อมูล");
-        window.location.href = "dashboard.html";
+document.addEventListener("DOMContentLoaded", async () => {
+
+    personnelId = Number(
+        new URLSearchParams(window.location.search).get("id")
+    );
+
+    if (!personnelId || isNaN(personnelId)) {
+
+        alert("ไม่พบรหัสกำลังพล");
+
+        location.href = "dashboard.html";
+
         return;
+
     }
 
-    loadPersonnel();
+    await loadPersonnel();
+
+    const form = document.getElementById("frm");
+
+    if (form) {
+
+        form.addEventListener("submit", updatePersonnel);
+
+    }
 
 });
 
+// ==============================================
 // โหลดข้อมูล
+// ==============================================
+
 async function loadPersonnel() {
 
     try {
 
         const { data, error } = await supabase
+
             .from("personnel")
+
             .select("*")
-            .eq("id", id)
+
+            .eq("id", personnelId)
+
             .single();
 
-        if (error) throw error;
+        if (error)
+            throw error;
 
-        document.getElementById("rank").value = data.rank || "";
-        document.getElementById("firstname").value = data.firstname || "";
-        document.getElementById("lastname").value = data.lastname || "";
-        document.getElementById("position").value = data.position || "";
-        document.getElementById("nickname").value = data.nickname || "";
-        document.getElementById("class").value = data.class || "";
-        document.getElementById("phone").value = data.phone || "";
-        document.getElementById("remark").value = data.remark || "";
+        document.getElementById("rank").value =
+            data.rank || "";
 
-    } catch (err) {
+        document.getElementById("firstname").value =
+            data.firstname || "";
 
-        alert(err.message);
+        document.getElementById("lastname").value =
+            data.lastname || "";
 
-        window.location.href = "dashboard.html";
+        document.getElementById("nickname").value =
+            data.nickname || "";
+
+        document.getElementById("position").value =
+            data.position || "";
+
+        document.getElementById("class_name").value =
+            data.class || "";
+
+        document.getElementById("phone").value =
+            data.phone || "";
+
+        document.getElementById("remark").value =
+            data.remark || "";
+
+        if (document.getElementById("photo")) {
+
+            document.getElementById("photo").src =
+                data.image || "images/no-photo.png";
+
+        }
+
+    }
+
+    catch (err) {
+
+        showError(err);
 
     }
 
 }
 
+// ==============================================
 // บันทึก
-async function updatePersonnel() {
+// ==============================================
 
-    const data = {
+async function updatePersonnel(event) {
 
-        rank: document.getElementById("rank").value.trim(),
-        firstname: document.getElementById("firstname").value.trim(),
-        lastname: document.getElementById("lastname").value.trim(),
-        position: document.getElementById("position").value.trim(),
-        nickname: document.getElementById("nickname").value.trim(),
-        class: document.getElementById("class").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        remark: document.getElementById("remark").value.trim()
+    event.preventDefault();
 
-    };
-
-    if (data.firstname === "") {
-
-        alert("กรุณากรอกชื่อ");
-
-        return;
-
-    }
+    const btn = document.getElementById("btnSave");
 
     try {
 
-        const { error } = await supabase
+        showLoading(btn, "กำลังบันทึก...");
+
+        const data = {
+
+            rank:
+                document.getElementById("rank").value.trim(),
+
+            firstname:
+                document.getElementById("firstname").value.trim(),
+
+            lastname:
+                document.getElementById("lastname").value.trim(),
+
+            nickname:
+                document.getElementById("nickname").value.trim(),
+
+            position:
+                document.getElementById("position").value.trim(),
+
+            class:
+                document.getElementById("class_name").value.trim(),
+
+            phone:
+                document.getElementById("phone").value.trim(),
+
+            remark:
+                document.getElementById("remark").value.trim()
+
+        };
+
+        // ------------------------
+        // Validation
+        // ------------------------
+
+        if (!data.rank)
+            throw new Error("กรุณาเลือกยศ");
+
+        if (!data.firstname)
+            throw new Error("กรุณากรอกชื่อ");
+
+        if (!data.lastname)
+            throw new Error("กรุณากรอกนามสกุล");
+
+        if (data.phone !== "") {
+
+            const phoneRegex =
+                /^[0-9]{9,10}$/;
+
+            if (!phoneRegex.test(data.phone)) {
+
+                throw new Error(
+                    "เบอร์โทรศัพท์ไม่ถูกต้อง"
+                );
+
+            }
+
+        }
+
+        // ------------------------
+        // ตรวจสอบข้อมูลซ้ำ
+        // ------------------------
+
+        const {
+
+            data: duplicate,
+
+            error: duplicateError
+
+        } = await supabase
+
             .from("personnel")
+
+            .select("id")
+
+            .eq("firstname", data.firstname)
+
+            .eq("lastname", data.lastname)
+
+            .neq("id", personnelId)
+
+            .maybeSingle();
+
+        if (duplicateError)
+            throw duplicateError;
+
+        if (duplicate) {
+
+            throw new Error(
+                "พบข้อมูลซ้ำในระบบ"
+            );
+
+        }
+
+        // ------------------------
+        // Update
+        // ------------------------
+
+        const { error } = await supabase
+
+            .from("personnel")
+
             .update(data)
-            .eq("id", id);
 
-        if (error) throw error;
+            .eq("id", personnelId);
 
-        alert("บันทึกข้อมูลเรียบร้อย");
+        if (error)
+            throw error;
 
-        window.location.href = "dashboard.html";
+        showSuccess("บันทึกข้อมูลเรียบร้อย");
 
-    } catch (err) {
-
-        alert(err.message);
+        location.href =
+            "profile.html?id=" + personnelId;
 
     }
+
+    catch (err) {
+
+        showError(err);
+
+    }
+
+    finally {
+
+        hideLoading(btn);
+
+    }
+
+}
+
+// ==============================================
+// ย้อนกลับ
+// ==============================================
+
+function backProfile() {
+
+    location.href =
+        "profile.html?id=" + personnelId;
+
+}
+
+// ==============================================
+// รีโหลดข้อมูล
+// ==============================================
+
+function refresh() {
+
+    loadPersonnel();
 
 }
