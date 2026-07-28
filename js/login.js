@@ -50,9 +50,24 @@ async function login() {
             password
         });
 
-        if (error) throw error;
+   if (error) throw error;
 
-        window.location.replace("dashboard.html");
+
+// ตรวจสอบข้อมูล User
+const { data:userData } = await supabase.auth.getUser();
+
+
+if(userData.user){
+
+    localStorage.setItem(
+        "user_id",
+        userData.user.id
+    );
+
+}
+
+
+window.location.replace("dashboard.html");
 
     } catch (err) {
 
