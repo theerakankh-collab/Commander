@@ -1,82 +1,181 @@
-// ======================================
+// ==========================================
 // login.js
-// ระบบ Login
-// ======================================
+// Military Directory System
+// Version 2.0
+// ==========================================
+
+"use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    const loginBtn = document.getElementById("loginBtn");
+    // ถ้า Login อยู่แล้ว ให้เข้าหน้า Dashboard
+    checkAlreadyLogin();
 
-    if (loginBtn) {
-        loginBtn.addEventListener("click", login);
+    // Form Login
+    const form = document.getElementById("loginForm");
+
+    if (form) {
+
+        form.addEventListener("submit", loginSubmit);
+
     }
-
-    // กด Enter เพื่อ Login
-    document.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-            login();
-        }
-    });
 
 });
 
-async function login() {
+// ==========================================
+// ถ้า Login แล้ว
+// ==========================================
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const msg = document.getElementById("msg");
-    const btn = document.getElementById("loginBtn");
-
-    msg.innerHTML = "";
-
-    // ตรวจสอบข้อมูล
-    if (!email) {
-        msg.innerHTML = "กรุณากรอกอีเมล";
-        return;
-    }
-
-    if (!password) {
-        msg.innerHTML = "กรุณากรอกรหัสผ่าน";
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = "กำลังเข้าสู่ระบบ...";
+async function checkAlreadyLogin() {
 
     try {
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-        });
+        const session = await getSession();
 
-   if (error) throw error;
+        if (session) {
 
+            window.location.replace("dashboard.html");
 
-// ตรวจสอบข้อมูล User
-const { data:userData } = await supabase.auth.getUser();
-
-
-if(userData.user){
-
-    localStorage.setItem(
-        "user_id",
-        userData.user.id
-    );
-
-}
-
-
-window.location.replace("dashboard.html");
+        }
 
     } catch (err) {
 
-        msg.innerHTML = err.message;
+        console.error(err);
 
-    } finally {
+    }
 
-        btn.disabled = false;
-        btn.innerHTML = "เข้าสู่ระบบ";
+}
+
+// ==========================================
+// Login
+// ==========================================
+
+async function loginSubmit(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("email")
+        .value
+        .trim();
+
+    const password =
+        document.getElementById("password")
+        .value
+        .trim();
+
+    const msg =
+        document.getElementById("msg");
+
+    const btn =
+        document.getElementById("loginBtn");
+
+    msg.textContent = "";
+
+    // ----------------------------
+    // Validation
+    // ----------------------------
+
+    if (email === "") {
+
+        msg.textContent =
+            "กรุณากรอก Email";
+
+        return;
+
+    }
+
+    if (password === "") {
+
+        msg.textContent =
+            "กรุณากรอกรหัสผ่าน";
+
+        return;
+
+    }
+
+    // ตรวจสอบรูปแบบ Email
+
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+
+        msg.textContent =
+            "รูปแบบ Email ไม่ถูกต้อง";
+
+        return;
+
+    }
+
+    try {
+
+        showLoading(
+            btn,
+            "กำลังเข้าสู่ระบบ..."
+        );
+
+        // Login
+
+        const {
+
+            data,
+
+            error
+
+        } = await supabase.auth.signInWithPassword({
+
+            email,
+
+            password
+
+        });
+
+        if (error)
+            throw error;
+
+        // เก็บ User ID
+
+        if (data.user) {
+
+            localStorage.setItem(
+
+                "user_id",
+
+                data.user.id
+
+            );
+
+            localStorage.setItem(
+
+                "user_email",
+
+                data.user.email
+
+            );
+
+        }
+
+        showSuccess("เข้าสู่ระบบสำเร็จ");
+
+        window.location.replace(
+            "dashboard.html"
+        );
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        msg.textContent =
+            err.message;
+
+    }
+
+    finally {
+
+        hideLoading(btn);
 
     }
 
