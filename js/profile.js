@@ -1,79 +1,250 @@
-// =======================================
-// profile.js - แสดงข้อมูลกำลังพล
-// =======================================
+// ==============================================
+// profile.js
+// Military Directory
+// Personnel Profile
+// Version 3.0
+// ==============================================
 
-// 1. ตรวจสอบสถานะการเข้าสู่ระบบ
-checkLogin();
+"use strict";
 
-// 2. ดึงค่า id จาก Query Parameter ใน URL
-const id = new URLSearchParams(window.location.search).get("id");
+let personnelId = null;
 
-// 3. รอให้ DOM โหลดสมบูรณ์ก่อนเริ่มทำงาน
-window.addEventListener("DOMContentLoaded", () => {
-    if (!id) {
-        alert("ไม่พบรหัสข้อมูล");
-        window.location.href = "dashboard.html";
-        return;
+// ==============================================
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    async () => {
+
+        personnelId =
+
+            Number(
+
+                new URLSearchParams(
+
+                    window.location.search
+
+                ).get("id")
+
+            );
+
+        if (
+
+            !personnelId ||
+
+            isNaN(personnelId)
+
+        ) {
+
+            alert("ไม่พบรหัสกำลังพล");
+
+            location.href =
+
+                "dashboard.html";
+
+            return;
+
+        }
+
+        await loadPersonnel();
+
     }
 
-    loadPersonnel();
-});
+);
 
-// 4. ฟังก์ชันโหลดข้อมูลกำลังพลจาก Supabase
+// ==============================================
+
 async function loadPersonnel() {
+
     try {
-        const { data, error } = await supabase
+
+        const {
+
+            data,
+
+            error
+
+        } = await supabase
+
             .from("personnel")
+
             .select("*")
-            .eq("id", id)
+
+            .eq("id", personnelId)
+
             .single();
 
-        if (error || !data) {
-            throw new Error(error?.message || "ไม่พบข้อมูลกำลังพล");
-        }
+        if (error)
 
-        // แสดงข้อมูลชื่อ-นามสกุล และยศ
-        const fullRank = data.rank ? `${data.rank} ` : "";
-        document.getElementById("fullname").textContent = 
-            `${fullRank}${data.firstname || ""} ${data.lastname || ""}`.trim();
+            throw error;
 
-        document.getElementById("rank").textContent = data.rank || "-";
-        
-        // ตรวจสอบความปลอดภัยของ ID Element ก่อนใส่ค่า
-        setElementText("firstname", data.firstname);
-        setElementText("lastname", data.lastname);
-        setElementText("position", data.position);
-        setElementText("nickname", data.nickname);
-        setElementText("phone", data.phone);
-        setElementText("remark", data.remark);
+        renderProfile(data);
 
-        // ดึงค่า field 'class' ผ่าน Bracket Notation ป้องกันปัญหา JS Reserved Word
-        setElementText("class", data['class']);
-
-        // จัดการรูปภาพ
-        const photo = document.getElementById("photo");
-        if (photo) {
-            photo.src = (data.photo && data.photo.trim() !== "") 
-                ? data.photo 
-                : "images/no-photo.png";
-        }
-
-    } catch (err) {
-        console.error("Error loading personnel:", err);
-        alert(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
-        window.location.href = "dashboard.html";
     }
+
+    catch (err) {
+
+        showError(err);
+
+    }
+
 }
 
-// Helper Function ช่วยอัปเดตข้อความใน DOM อัตโนมัติ (ป้องกัน Error กรณีหา Element ไม่พบ)
-function setElementText(elementId, value) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.textContent = value || "-";
-    }
+// ==============================================
+
+function renderProfile(data) {
+
+    document.getElementById(
+
+        "fullname"
+
+    ).textContent =
+
+        `${data.rank || ""} ${data.firstname || ""} ${data.lastname || ""}`;
+
+    setText(
+
+        "rank",
+
+        data.rank
+
+    );
+
+    setText(
+
+        "firstname",
+
+        data.firstname
+
+    );
+
+    setText(
+
+        "lastname",
+
+        data.lastname
+
+    );
+
+    setText(
+
+        "position",
+
+        data.position
+
+    );
+
+    setText(
+
+        "nickname",
+
+        data.nickname
+
+    );
+
+    setText(
+
+        "class_name",
+
+        data.class
+
+    );
+
+    setText(
+
+        "phone",
+
+        data.phone
+
+    );
+
+    setText(
+
+        "remark",
+
+        data.remark
+
+    );
+
+    loadImage(
+
+        data.image
+
+    );
+
 }
 
-// ฟังก์ชันสำหรับย้อนกลับ
-function goBack() {
-    window.location.href = "dashboard.html";
+// ==============================================
+
+function loadImage(image) {
+
+    const img =
+
+        document.getElementById(
+
+            "photo"
+
+        );
+
+    if (!img)
+
+        return;
+
+    if (
+
+        image &&
+
+        image.trim() !== ""
+
+    ) {
+
+        img.src = image;
+
+    }
+
+    else {
+
+        img.src =
+
+            "images/no-photo.png";
+
+    }
+
+}
+
+// ==============================================
+
+function setText(id, value) {
+
+    const obj =
+
+        document.getElementById(id);
+
+    if (!obj)
+
+        return;
+
+    obj.textContent =
+
+        value || "-";
+
+}
+
+// ==============================================
+
+function refresh() {
+
+    loadPersonnel();
+
+}
+
+// ==============================================
+
+function backDashboard() {
+
+    location.href =
+
+        "dashboard.html";
+
 }
