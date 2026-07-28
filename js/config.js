@@ -9,3 +9,7 @@ const supabase = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
+
+console.log("window.supabase =", window.supabase);
+console.log("supabase =", supabase);
+console.log("from =", supabase.from);
