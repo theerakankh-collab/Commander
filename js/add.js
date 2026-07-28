@@ -1,88 +1,175 @@
-// =============================
+// ==============================================
 // add.js
-// เพิ่มข้อมูลกำลังพล
-// =============================
+// Military Directory System
+// Add Personnel
+// Version 3.0
+// ==============================================
 
-async function save() {
+"use strict";
 
-    // รับค่าจากฟอร์ม
-    const data = {
-        rank: document.getElementById("rank").value.trim(),
-        firstname: document.getElementById("firstname").value.trim(),
-        lastname: document.getElementById("lastname").value.trim(),
-        position: document.getElementById("position").value.trim(),
-        nickname: document.getElementById("nickname").value.trim(),
-        class: document.getElementById("class").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        remark: document.getElementById("remark").value.trim()
-    };
+document.addEventListener("DOMContentLoaded", async () => {
 
-    // ตรวจสอบข้อมูลที่จำเป็น
-    if (!data.rank) {
-        alert("กรุณากรอกยศ");
-        document.getElementById("rank").focus();
-        return;
+    await checkLogin();
+
+    const form = document.getElementById("frm");
+
+    if (form) {
+
+        form.addEventListener("submit", savePersonnel);
+
     }
 
-    if (!data.firstname) {
-        alert("กรุณากรอกชื่อ");
-        document.getElementById("firstname").focus();
-        return;
-    }
+});
 
-    if (!data.lastname) {
-        alert("กรุณากรอกนามสกุล");
-        document.getElementById("lastname").focus();
-        return;
-    }
+// ==============================================
+// Save
+// ==============================================
 
-    // ปิดปุ่มชั่วคราว ป้องกันการกดซ้ำ
-    const btn = document.querySelector("button[onclick='save()']");
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = "กำลังบันทึก...";
-    }
+async function savePersonnel(event) {
+
+    event.preventDefault();
+
+    const btn = document.getElementById("btnSave");
 
     try {
 
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/personnel`,
-            {
-                method: "POST",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    Prefer: "return=representation"
-                },
-                body: JSON.stringify(data)
+        showLoading(btn, "กำลังบันทึก...");
+
+        // -----------------------------
+        // อ่านข้อมูลจาก Form
+        // -----------------------------
+
+        const data = {
+
+            rank:
+                document.getElementById("rank").value.trim(),
+
+            firstname:
+                document.getElementById("firstname").value.trim(),
+
+            lastname:
+                document.getElementById("lastname").value.trim(),
+
+            nickname:
+                document.getElementById("nickname").value.trim(),
+
+            position:
+                document.getElementById("position").value.trim(),
+
+            class:
+                document.getElementById("class_name").value.trim(),
+
+            phone:
+                document.getElementById("phone").value.trim(),
+
+            remark:
+                document.getElementById("remark").value.trim(),
+
+            image: null,
+
+            created_at:
+                new Date().toISOString()
+
+        };
+
+        // -----------------------------
+        // Validation
+        // -----------------------------
+
+        if (!data.rank)
+            throw new Error("กรุณาระบุยศ");
+
+        if (!data.firstname)
+            throw new Error("กรุณากรอกชื่อ");
+
+        if (!data.lastname)
+            throw new Error("กรุณากรอกนามสกุล");
+
+        // ตรวจสอบเบอร์โทร
+
+        if (data.phone !== "") {
+
+            const phoneRegex =
+                /^[0-9]{9,10}$/;
+
+            if (!phoneRegex.test(data.phone)) {
+
+                throw new Error(
+                    "เบอร์โทรไม่ถูกต้อง"
+                );
+
             }
-        );
-
-        if (!response.ok) {
-
-            const errorText = await response.text();
-
-            throw new Error(errorText);
 
         }
 
-        alert("✅ บันทึกข้อมูลเรียบร้อย");
+        // -----------------------------
+        // ตรวจสอบข้อมูลซ้ำ
+        // -----------------------------
 
-        window.location.href = "dashboard.html";
+        const {
 
-    } catch (error) {
+            data: duplicate,
 
-        console.error("Save Error :", error);
+            error: duplicateError
 
-        alert("❌ ไม่สามารถบันทึกข้อมูลได้\n\n" + error.message);
+        } = await supabase
 
-    } finally {
+            .from("personnel")
 
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = "บันทึก";
+            .select("id")
+
+            .eq("firstname", data.firstname)
+
+            .eq("lastname", data.lastname)
+
+            .maybeSingle();
+
+        if (duplicateError)
+            throw duplicateError;
+
+        if (duplicate) {
+
+            throw new Error(
+
+                "พบข้อมูลกำลังพลนี้แล้ว"
+
+            );
+
         }
+
+        // -----------------------------
+        // บันทึก
+        // -----------------------------
+
+        const {
+
+            error
+
+        } = await supabase
+
+            .from("personnel")
+
+            .insert([data]);
+
+        if (error)
+            throw error;
+
+        showSuccess("บันทึกข้อมูลเรียบร้อย");
+
+        window.location.href =
+            "dashboard.html";
+
+    }
+
+    catch (err) {
+
+        showError(err);
+
+    }
+
+    finally {
+
+        hideLoading(btn);
 
     }
 
