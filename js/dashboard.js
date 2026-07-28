@@ -1,61 +1,132 @@
-// =========================================
+// ==============================================
 // dashboard.js
-// ระบบกำลังพล
-// =========================================
+// Military Directory
+// Dashboard
+// ==============================================
 
-checkLogin();
+"use strict";
 
 let personnel = [];
 
-// =============================
-// โหลด Dashboard
-// =============================
-window.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener(
 
-    await loadSummary();
+    "DOMContentLoaded",
 
-    await loadPersonnel();
+    async () => {
 
-});
+        await initialize();
 
-// =============================
-// โหลดสรุป
-// =============================
-async function loadSummary() {
+    }
 
-    try {
+);
 
-        const { count: totalPersonnel } = await supabase
+// =====================================
+
+async function initialize(){
+
+    try{
+
+        await checkLogin();
+
+        await Promise.all([
+
+            loadSummary(),
+
+            loadPersonnel()
+
+        ]);
+
+    }
+
+    catch(err){
+
+        showError(err);
+
+    }
+
+}
+
+// =====================================
+
+async function loadSummary(){
+
+    try{
+
+        const [
+
+            personnelResult,
+
+            commanderResult,
+
+            wifeResult
+
+        ] = await Promise.all([
+
+            supabase
+
             .from("personnel")
-            .select("*", {
-                count: "exact",
-                head: true
-            });
 
-        const { count: totalCommander } = await supabase
+            .select("*",{
+
+                count:"exact",
+
+                head:true
+
+            }),
+
+            supabase
+
             .from("commanders")
-            .select("*", {
-                count: "exact",
-                head: true
-            });
 
-        const { count: totalWife } = await supabase
+            .select("*",{
+
+                count:"exact",
+
+                head:true
+
+            }),
+
+            supabase
+
             .from("wives")
-            .select("*", {
-                count: "exact",
-                head: true
-            });
 
-        document.getElementById("totalPersonnel").textContent =
-            totalPersonnel || 0;
+            .select("*",{
 
-        document.getElementById("totalCommander").textContent =
-            totalCommander || 0;
+                count:"exact",
 
-        document.getElementById("totalWife").textContent =
-            totalWife || 0;
+                head:true
 
-    } catch (err) {
+            })
+
+        ]);
+
+        document.getElementById(
+
+            "totalPersonnel"
+
+        ).textContent=
+
+        personnelResult.count||0;
+
+        document.getElementById(
+
+            "totalCommander"
+
+        ).textContent=
+
+        commanderResult.count||0;
+
+        document.getElementById(
+
+            "totalWife"
+
+        ).textContent=
+
+        wifeResult.count||0;
+
+    }
+
+    catch(err){
 
         console.error(err);
 
@@ -63,159 +134,272 @@ async function loadSummary() {
 
 }
 
-// =============================
-// โหลดข้อมูลกำลังพล
-// =============================
-async function loadPersonnel() {
+// =====================================
 
-    try {
+async function loadPersonnel(){
 
-        const { data, error } = await supabase
-            .from("personnel")
-            .select("*")
-            .order("rank")
-            .order("firstname");
+    try{
 
-        if (error) throw error;
+        const {
 
-        personnel = data || [];
+            data,
+
+            error
+
+        } = await supabase
+
+        .from("personnel")
+
+        .select("*")
+
+        .order("lastname")
+
+        .order("firstname");
+
+        if(error)
+
+            throw error;
+
+        personnel=data||[];
 
         renderTable(personnel);
 
-        const phoneCount =
-            personnel.filter(p => p.phone && p.phone.trim() !== "").length;
+        const phoneCount=
 
-        document.getElementById("totalPhone").textContent =
-            phoneCount;
+        personnel.filter(
 
-    } catch (err) {
+            p=>p.phone
 
-        console.error(err);
+        ).length;
 
-        alert(err.message);
+        document.getElementById(
+
+            "totalPhone"
+
+        ).textContent=
+
+        phoneCount;
+
+    }
+
+    catch(err){
+
+        showError(err);
 
     }
 
 }
 
-// =============================
-// แสดงตาราง
-// =============================
-function renderTable(data) {
+// =====================================
 
-    let html = "";
+function renderTable(rows){
 
-    data.forEach(p => {
+    const tbody=
 
-        html += `
+    document.getElementById(
+
+        "result"
+
+    );
+
+    if(rows.length===0){
+
+        tbody.innerHTML=`
+
         <tr>
 
-            <td>${p.rank ?? ""}</td>
+        <td colspan="5"
 
-            <td>${p.firstname ?? ""} ${p.lastname ?? ""}</td>
+        class="text-center">
 
-            <td>${p.position ?? ""}</td>
+        ไม่พบข้อมูล
 
-            <td>${p.phone ?? "-"}</td>
-
-            <td>
-
-                <a
-                    href="profile.html?id=${p.id}"
-                    class="btn btn-success btn-sm">
-
-                    รายละเอียด
-
-                </a>
-
-                <a
-                    href="edit.html?id=${p.id}"
-                    class="btn btn-warning btn-sm">
-
-                    แก้ไข
-
-                </a>
-
-                <button
-                    class="btn btn-danger btn-sm"
-                    onclick="deletePersonnel(${p.id})">
-
-                    ลบ
-
-                </button>
-
-            </td>
+        </td>
 
         </tr>
+
         `;
 
-    });
-
-    document.getElementById("result").innerHTML = html;
-
-    if ($.fn.DataTable.isDataTable("#personTable")) {
-
-        $("#personTable").DataTable().destroy();
+        return;
 
     }
 
-    const table = $("#personTable").DataTable({
+    tbody.innerHTML=
 
-        pageLength: 20,
+    rows.map(p=>`
 
-        responsive: true,
+<tr>
 
-        language: {
+<td>${p.rank??""}</td>
 
-            url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
+<td>
+
+${p.firstname??""}
+
+${p.lastname??""}
+
+</td>
+
+<td>${p.position??""}</td>
+
+<td>${p.phone||"-"}</td>
+
+<td>
+
+<a
+
+href="profile.html?id=${p.id}"
+
+class="btn btn-success btn-sm">
+
+รายละเอียด
+
+</a>
+
+<a
+
+href="edit.html?id=${p.id}"
+
+class="btn btn-warning btn-sm">
+
+แก้ไข
+
+</a>
+
+<button
+
+class="btn btn-danger btn-sm"
+
+onclick="deletePersonnel(${p.id})">
+
+ลบ
+
+</button>
+
+</td>
+
+</tr>
+
+`).join("");
+
+initializeTable();
+
+}
+
+// =====================================
+
+function initializeTable(){
+
+    if(
+
+        $.fn.DataTable.isDataTable(
+
+            "#personTable"
+
+        )
+
+    ){
+
+        $("#personTable")
+
+        .DataTable()
+
+        .destroy();
+
+    }
+
+    const table=
+
+    $("#personTable")
+
+    .DataTable({
+
+        pageLength:20,
+
+        responsive:true,
+
+        language:{
+
+url:
+
+"https://cdn.datatables.net/plug-ins/1.13.8/i18n/th.json"
 
         }
 
     });
 
     $("#search")
-        .off("keyup")
-        .on("keyup", function () {
 
-            table.search(this.value).draw();
+    .off()
 
-        });
+    .keyup(function(){
+
+        table.search(
+
+            this.value
+
+        ).draw();
+
+    });
 
 }
 
-// =============================
-// ลบข้อมูล
-// =============================
-async function deletePersonnel(id) {
+// =====================================
 
-    if (!confirm("ยืนยันการลบข้อมูล ?")) return;
+async function deletePersonnel(id){
 
-    try {
+    if(
 
-        const { error } = await supabase
-            .from("personnel")
-            .delete()
-            .eq("id", id);
+        !confirm(
 
-        if (error) throw error;
+            "ยืนยันการลบข้อมูล?"
 
-        await loadSummary();
+        )
 
-        await loadPersonnel();
+    )
 
-    } catch (err) {
+    return;
 
-        alert(err.message);
+    try{
+
+        const{
+
+            error
+
+        }=await supabase
+
+        .from("personnel")
+
+        .delete()
+
+        .eq("id",id);
+
+        if(error)
+
+            throw error;
+
+        showSuccess(
+
+            "ลบข้อมูลเรียบร้อย"
+
+        );
+
+        await initialize();
+
+    }
+
+    catch(err){
+
+        showError(err);
 
     }
 
 }
 
-// =============================
-// Logout
-// =============================
-function logoutSystem() {
+// =====================================
 
-    logout();
+function refresh(){
+
+    initialize();
 
 }
