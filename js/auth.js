@@ -1,128 +1,254 @@
-// =============================================
+// ==============================================
 // auth.js
-// Military Directory
-// Authentication ด้วย Supabase
-// =============================================
+// Military Directory System
+// Authentication
+// Version 3.0
+// ==============================================
 
-// ------------------------------
-// ตรวจสอบการ Login
-// ------------------------------
+"use strict";
+
+/**
+ * ตรวจสอบ Session
+ */
 async function checkLogin() {
 
     try {
 
-        const {
-            data: { session },
-            error
-        } = await supabase.auth.getSession();
-
-        if (error) throw error;
+        const session = await getSession();
 
         if (!session) {
 
             window.location.replace("login.html");
-            return;
+
+            return false;
 
         }
 
-        // แสดงชื่อผู้ใช้ (ถ้ามี Element)
-        const userName = document.getElementById("userName");
+        return true;
 
-        if (userName) {
+    }
 
-            userName.innerHTML =
-                session.user.email;
+    catch (err) {
 
-        }
-
-    } catch (err) {
-
-        console.error("Check Login Error :", err);
+        console.error(err);
 
         window.location.replace("login.html");
 
-    }
-
-}
-
-
-// ------------------------------
-// Login
-// ------------------------------
-async function login(email, password) {
-
-    try {
-
-        const { error } =
-            await supabase.auth.signInWithPassword({
-
-                email,
-                password
-
-            });
-
-        if (error) throw error;
-
-        window.location.replace("dashboard.html");
-
-    } catch (err) {
-
-        alert(err.message);
+        return false;
 
     }
 
 }
 
-
-// ------------------------------
-// Logout
-// ------------------------------
-async function logout() {
-
-    if (!confirm("ต้องการออกจากระบบใช่หรือไม่ ?"))
-        return;
-
-    try {
-
-        const { error } =
-            await supabase.auth.signOut();
-
-        if (error) throw error;
-
-        window.location.replace("login.html");
-
-    } catch (err) {
-
-        alert(err.message);
-
-    }
-
-}
-
-
-// ------------------------------
-// ดึงข้อมูล User ปัจจุบัน
-// ------------------------------
-async function getCurrentUser() {
-
-    const {
-        data: { user }
-    } = await supabase.auth.getUser();
-
-    return user;
-
-}
-
-
-// ------------------------------
-// ตรวจสอบสิทธิ์
-// ------------------------------
+/**
+ * ตรวจสอบว่า Login อยู่หรือไม่
+ */
 async function isLoggedIn() {
 
-    const {
-        data: { session }
-    } = await supabase.auth.getSession();
+    const session = await getSession();
 
     return session !== null;
 
 }
+
+/**
+ * ดึง User ปัจจุบัน
+ */
+async function currentUser() {
+
+    try {
+
+        return await getCurrentUser();
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        return null;
+
+    }
+
+}
+
+/**
+ * แสดง Email
+ */
+async function showCurrentUser() {
+
+    try {
+
+        const user = await currentUser();
+
+        if (!user)
+            return;
+
+        const obj =
+            document.getElementById("userName");
+
+        if (obj) {
+
+            obj.textContent =
+                user.email;
+
+        }
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+    }
+
+}
+
+/**
+ * Logout
+ */
+async function logoutSystem() {
+
+    try {
+
+        await logout();
+
+    }
+
+    catch (err) {
+
+        showError(err);
+
+    }
+
+}
+
+/**
+ * ตรวจสอบสิทธิ์
+ */
+async function checkRole(requiredRole) {
+
+    try {
+
+        const user =
+            await currentUser();
+
+        if (!user)
+            return false;
+
+        const {
+
+            data,
+
+            error
+
+        } = await supabase
+
+            .from("personnel")
+
+            .select("role")
+
+            .eq("email", user.email)
+
+            .single();
+
+        if (error)
+            throw error;
+
+        if (!data)
+            return false;
+
+        return data.role === requiredRole;
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        return false;
+
+    }
+
+}
+
+/**
+ * Admin Only
+ */
+async function requireAdmin() {
+
+    const ok =
+        await checkRole("admin");
+
+    if (!ok) {
+
+        alert("ไม่มีสิทธิ์ใช้งาน");
+
+        location.replace(
+            "dashboard.html"
+        );
+
+    }
+
+}
+
+/**
+ * Commander Only
+ */
+async function requireCommander() {
+
+    const ok =
+        await checkRole(
+            "commander"
+        );
+
+    if (!ok) {
+
+        alert("ไม่มีสิทธิ์ใช้งาน");
+
+        location.replace(
+            "dashboard.html"
+        );
+
+    }
+
+}
+
+/**
+ * User Name
+ */
+async function loadUserName() {
+
+    await showCurrentUser();
+
+}
+
+/**
+ * Auto
+ */
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    async () => {
+
+        if (
+
+            document.body.dataset.auth === "required"
+
+        ) {
+
+            const ok =
+                await checkLogin();
+
+            if (ok) {
+
+                await loadUserName();
+
+            }
+
+        }
+
+    }
+
+);
