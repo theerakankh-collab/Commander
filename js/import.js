@@ -1,118 +1,314 @@
-// ==========================================
+// ==============================================
 // import.js
-// Import Excel -> Supabase
-// ==========================================
+// Military Directory System
+// Import Personnel Excel
+// Version 3.0
+// ==============================================
 
-checkLogin();
+"use strict";
 
-async function importExcel() {
+let excelRows = [];
 
-    const file = document.getElementById("excelFile").files[0];
+// ==============================================
 
-    if (!file) {
-        alert("กรุณาเลือกไฟล์ Excel");
-        return;
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        document
+
+        .getElementById("excelFile")
+
+        .addEventListener(
+
+            "change",
+
+            readExcel
+
+        );
+
     }
 
-    const status = document.getElementById("status");
-    const progress = document.getElementById("progress");
+);
 
-    status.innerHTML = "กำลังอ่านไฟล์...";
+// ==============================================
+// อ่าน Excel
+// ==============================================
 
-    const reader = new FileReader();
+function readExcel(event){
 
-    reader.onload = async function (e) {
+    const file=
 
-        try {
+    event.target.files[0];
 
-            const workbook = XLSX.read(e.target.result, {
-                type: "binary"
-            });
+    if(!file)
 
-            const sheet =
-                workbook.Sheets[workbook.SheetNames[0]];
+        return;
 
-            const rows =
-                XLSX.utils.sheet_to_json(sheet);
+    const reader=
 
-            if (rows.length === 0) {
+    new FileReader();
 
-                alert("ไม่พบข้อมูลในไฟล์");
+    reader.onload=function(e){
 
-                return;
+        const data=
 
-            }
+        new Uint8Array(
 
-            let success = 0;
-            let fail = 0;
+            e.target.result
 
-            for (let i = 0; i < rows.length; i++) {
+        );
 
-                const r = rows[i];
+        const workbook=
 
-                const personnel = {
+        XLSX.read(data,{
 
-                    rank: r["ยศ"] || "",
-                    firstname: r["ชื่อ"] || "",
-                    lastname: r["สกุล"] || "",
-                    nickname: r["ชื่อเล่น"] || "",
-                    position: r["ตำแหน่ง"] || "",
-                    class: r["ตท."] || "",
-                    phone: r["โทรศัพท์"] || "",
-                    remark: r["หมายเหตุ"] || ""
+            type:"array"
 
-                };
+        });
 
-                const { error } =
-                    await supabase
-                        .from("personnel")
-                        .insert([personnel]);
+        const sheet=
 
-                if (error) {
+        workbook.Sheets[
 
-                    console.error(error);
+            workbook.SheetNames[0]
 
-                    fail++;
+        ];
 
-                } else {
+        excelRows=
 
-                    success++;
+        XLSX.utils.sheet_to_json(
 
-                }
+            sheet,
 
-                // Progress Bar
+            {
 
-                const percent =
-                    Math.round(((i + 1) / rows.length) * 100);
-
-                if (progress) {
-
-                    progress.style.width = percent + "%";
-
-                    progress.innerHTML = percent + "%";
-
-                }
-
-                status.innerHTML =
-                    `กำลังนำเข้า ${i + 1} / ${rows.length}`;
+                defval:""
 
             }
 
-            status.innerHTML =
-                `✅ สำเร็จ ${success} รายการ<br>❌ ผิดพลาด ${fail} รายการ`;
+        );
 
-            alert("นำเข้าข้อมูลเรียบร้อย");
-
-        } catch (err) {
-
-            console.error(err);
-
-            alert(err.message);
-
-        }
+        previewData();
 
     };
 
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
+
+}
+
+// ==============================================
+// Preview
+// ==============================================
+
+function previewData(){
+
+    const tbody=
+
+    document.getElementById(
+
+        "preview"
+
+    );
+
+    tbody.innerHTML="";
+
+    excelRows.forEach(
+
+        row=>{
+
+            tbody.innerHTML+=`
+
+<tr>
+
+<td>${row.rank||""}</td>
+
+<td>
+
+${row.firstname||""}
+
+</td>
+
+<td>
+
+${row.lastname||""}
+
+</td>
+
+<td>
+
+${row.position||""}
+
+</td>
+
+</tr>
+
+`;
+
+        }
+
+    );
+
+    document.getElementById(
+
+        "totalRow"
+
+    ).textContent=
+
+    excelRows.length;
+
+}
+
+// ==============================================
+// Import
+// ==============================================
+
+async function importData(){
+
+    const btn=
+
+    document.getElementById(
+
+        "btnImport"
+
+    );
+
+    try{
+
+        showLoading(
+
+            btn,
+
+            "กำลังนำเข้า..."
+
+        );
+
+        if(
+
+            excelRows.length===0
+
+        ){
+
+            throw new Error(
+
+                "ไม่มีข้อมูล"
+
+            );
+
+        }
+
+        // Validation
+
+        const validRows=[];
+
+        for(
+
+            const row
+
+            of excelRows
+
+        ){
+
+            if(
+
+                !row.rank||
+
+                !row.firstname||
+
+                !row.lastname
+
+            ){
+
+                continue;
+
+            }
+
+            validRows.push({
+
+                rank:row.rank,
+
+                firstname:row.firstname,
+
+                lastname:row.lastname,
+
+                nickname:row.nickname||"",
+
+                position:row.position||"",
+
+                class:row.class||"",
+
+                phone:row.phone||"",
+
+                remark:row.remark||"",
+
+                image:null,
+
+                created_at:
+
+                new Date()
+
+                .toISOString()
+
+            });
+
+        }
+
+        if(
+
+            validRows.length===0
+
+        ){
+
+            throw new Error(
+
+                "ไม่มีข้อมูลที่ถูกต้อง"
+
+            );
+
+        }
+
+        // Bulk Insert
+
+        const{
+
+            error
+
+        }=
+
+        await supabase
+
+        .from("personnel")
+
+        .insert(validRows);
+
+        if(error)
+
+            throw error;
+
+        showSuccess(
+
+            `นำเข้า ${validRows.length} รายการสำเร็จ`
+
+        );
+
+        location.href=
+
+        "dashboard.html";
+
+    }
+
+    catch(err){
+
+        showError(err);
+
+    }
+
+    finally{
+
+        hideLoading(btn);
+
+    }
 
 }
