@@ -248,3 +248,18 @@ function backDashboard() {
         "dashboard.html";
 
 }
+
+document.getElementById(
+    "position_text"
+).textContent =
+    data.position || "-";
+
+document.getElementById(
+    "role"
+).textContent =
+    data.role || "user";
+
+document.getElementById(
+    "btnEdit"
+).href =
+    "edit.html?id=" + personnelId;
