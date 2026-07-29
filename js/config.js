@@ -10,8 +10,8 @@
 // Supabase Configuration
 // ----------------------------------------------
 
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+const SUPABASE_URL = "https://sftbzmwrrymlgbsmuima.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_J3UrucI0x66JEbHUQQHlXA_QFQf-ioz";
 
 // ----------------------------------------------
 // ตรวจสอบว่าโหลด Library แล้ว
