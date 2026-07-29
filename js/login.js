@@ -180,3 +180,34 @@ async function loginSubmit(event) {
     }
 
 }
+
+// ==========================
+// Loading Button
+// ==========================
+function showLoading(btn, text = "กำลังโหลด...") {
+
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.dataset.oldText = btn.innerHTML;
+    btn.innerHTML = text;
+
+}
+
+function hideLoading(btn) {
+
+    if (!btn) return;
+
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.oldText || "เข้าสู่ระบบ";
+
+}
+
+// ==========================
+// Success Message
+// ==========================
+function showSuccess(text) {
+
+    alert(text);
+
+}
