@@ -226,6 +226,60 @@ async function loadUserName() {
 /**
  * Auto
  */
+
+
+// ==============================
+// Get Session
+// ==============================
+async function getSession() {
+
+    const { data, error } =
+        await supabase.auth.getSession();
+
+    if (error) throw error;
+
+    return data.session;
+
+}
+
+// ==============================
+// Current User
+// ==============================
+async function getCurrentUser() {
+
+    const { data, error } =
+        await supabase.auth.getUser();
+
+    if (error) throw error;
+
+    return data.user;
+
+}
+
+// ==============================
+// Logout
+// ==============================
+async function logout() {
+
+    const { error } =
+        await supabase.auth.signOut();
+
+    if (error) throw error;
+
+    window.location.replace("login.html");
+
+}
+
+// ==============================
+// Error
+// ==============================
+function showError(err) {
+
+    alert(err.message || err);
+
+}
+
+
 document.addEventListener(
 
     "DOMContentLoaded",
