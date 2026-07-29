@@ -52,3 +52,7 @@ phone varchar(30)
 
 ALTER TABLE personnel
 ADD COLUMN role text DEFAULT 'user';
+
+ALTER TABLE personnel
+ADD COLUMN email text;
+
