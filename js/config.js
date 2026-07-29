@@ -233,3 +233,10 @@ document.addEventListener(
     }
 
 );
+
+console.log("window.supabase =", window.supabase);
+console.log("supabase =", supabase);
+console.log("supabase.from =", typeof supabase.from);
+console.log("supabase.auth =", typeof supabase.auth);
+
+
