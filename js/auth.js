@@ -2,14 +2,40 @@
 // auth.js
 // Military Directory System
 // Authentication
-// Version 3.0
+// Supabase JS v2
 // ==============================================
 
 "use strict";
 
-/**
- * ตรวจสอบ Session
- */
+// ==============================================
+// ตรวจสอบ Session
+// ==============================================
+async function getSession() {
+
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) throw error;
+
+    return data.session;
+
+}
+
+// ==============================================
+// ดึง User ปัจจุบัน
+// ==============================================
+async function getCurrentUser() {
+
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) throw error;
+
+    return data.user;
+
+}
+
+// ==============================================
+// ตรวจสอบว่า Login หรือยัง
+// ==============================================
 async function checkLogin() {
 
     try {
@@ -19,18 +45,15 @@ async function checkLogin() {
         if (!session) {
 
             window.location.replace("login.html");
-
             return false;
 
         }
 
         return true;
 
-    }
+    } catch (err) {
 
-    catch (err) {
-
-        console.error(err);
+        console.error("Check Login :", err);
 
         window.location.replace("login.html");
 
@@ -40,63 +63,44 @@ async function checkLogin() {
 
 }
 
-/**
- * ตรวจสอบว่า Login อยู่หรือไม่
- */
+// ==============================================
+// Login อยู่หรือไม่
+// ==============================================
 async function isLoggedIn() {
 
-    const session = await getSession();
-
-    return session !== null;
+    return (await getSession()) !== null;
 
 }
 
-/**
- * ดึง User ปัจจุบัน
- */
+// ==============================================
+// User ปัจจุบัน
+// ==============================================
 async function currentUser() {
 
-    try {
-
-        return await getCurrentUser();
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        return null;
-
-    }
+    return await getCurrentUser();
 
 }
 
-/**
- * แสดง Email
- */
+// ==============================================
+// แสดง Email
+// ==============================================
 async function showCurrentUser() {
 
     try {
 
         const user = await currentUser();
 
-        if (!user)
-            return;
+        if (!user) return;
 
-        const obj =
-            document.getElementById("userName");
+        const obj = document.getElementById("userName");
 
         if (obj) {
 
-            obj.textContent =
-                user.email;
+            obj.textContent = user.email;
 
         }
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error(err);
 
@@ -104,65 +108,64 @@ async function showCurrentUser() {
 
 }
 
-/**
- * Logout
- */
-async function logoutSystem() {
+// ==============================================
+// Logout
+// ==============================================
+async function logout() {
 
     try {
 
-        await logout();
+        const { error } = await supabase.auth.signOut();
 
-    }
+        if (error) throw error;
 
-    catch (err) {
+        window.location.replace("login.html");
 
-        showError(err);
+    } catch (err) {
+
+        alert(err.message);
 
     }
 
 }
 
-/**
- * ตรวจสอบสิทธิ์
- */
+// ==============================================
+// Logout จากปุ่ม
+// ==============================================
+function logoutSystem() {
+
+    logout();
+
+}
+
+// ==============================================
+// ตรวจสอบสิทธิ์
+// ==============================================
 async function checkRole(requiredRole) {
 
     try {
 
-        const user =
-            await currentUser();
+        const user = await currentUser();
 
-        if (!user)
-            return false;
+        if (!user) return false;
 
-        const {
-
-            data,
-
-            error
-
-        } = await supabase
-
+        const { data, error } = await supabase
             .from("personnel")
-
             .select("role")
-
             .eq("email", user.email)
-
             .single();
 
-        if (error)
-            throw error;
+        if (error) {
 
-        if (!data)
+            console.log(error);
+
             return false;
+
+        }
 
         return data.role === requiredRole;
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error(err);
 
@@ -172,150 +175,47 @@ async function checkRole(requiredRole) {
 
 }
 
-/**
- * Admin Only
- */
+// ==============================================
+// Admin Only
+// ==============================================
 async function requireAdmin() {
 
-    const ok =
-        await checkRole("admin");
+    const ok = await checkRole("admin");
 
     if (!ok) {
 
         alert("ไม่มีสิทธิ์ใช้งาน");
 
-        location.replace(
-            "dashboard.html"
-        );
+        window.location.replace("dashboard.html");
 
     }
 
 }
 
-/**
- * Commander Only
- */
-async function requireCommander() {
-
-    const ok =
-        await checkRole(
-            "commander"
-        );
-
-    if (!ok) {
-
-        alert("ไม่มีสิทธิ์ใช้งาน");
-
-        location.replace(
-            "dashboard.html"
-        );
-
-    }
-
-}
-
-/**
- * User Name
- */
-async function loadUserName() {
-
-    await showCurrentUser();
-
-}
-
-/**
- * Auto
- */
-
-
-// ==============================
-// Get Session
-// ==============================
-async function getSession() {
-
-    const { data, error } =
-        await supabase.auth.getSession();
-
-    if (error) throw error;
-
-    return data.session;
-
-}
-
-// ==============================
-// Current User
-// ==============================
-async function getCurrentUser() {
-
-    const { data, error } =
-        await supabase.auth.getUser();
-
-    if (error) throw error;
-
-    return data.user;
-
-}
-
-// ==============================
-// Logout
-// ==============================
-async function logout() {
-
-    const { error } =
-        await supabase.auth.signOut();
-
-    if (error) throw error;
-
-    window.location.replace("login.html");
-
-}
-
-// ==============================
-// Error
-// ==============================
+// ==============================================
+// แสดง Error
+// ==============================================
 function showError(err) {
 
     alert(err.message || err);
 
 }
 
+// ==============================================
+// โหลดอัตโนมัติ
+// ==============================================
+document.addEventListener("DOMContentLoaded", async () => {
 
-document.addEventListener(
+    if (document.body.dataset.auth === "required") {
 
-    "DOMContentLoaded",
+        const ok = await checkLogin();
 
-    async () => {
+        if (ok) {
 
-        if (
-
-            document.body.dataset.auth === "required"
-
-        ) {
-
-            const ok =
-                await checkLogin();
-
-            if (ok) {
-
-                await loadUserName();
-
-            }
+            await showCurrentUser();
 
         }
 
     }
 
-);
-
-async function getSession() {
-
-    const { data, error } =
-        await supabase.auth.getSession();
-
-    if (error) throw error;
-
-    return data.session;
-
-}
-
-
+});
