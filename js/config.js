@@ -1,242 +1,604 @@
-// ==============================================
+// ======================================================
 // config.js
 // Military Directory System
-// Version 2.0
-// ==============================================
+// Supabase Configuration
+// Version 2.1
+// ======================================================
+
 
 "use strict";
 
-// ----------------------------------------------
-// Supabase Configuration
-// ----------------------------------------------
 
-const SUPABASE_URL = "https://sftbzmwrrymlgbsmuima.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_J3UrucI0x66JEbHUQQHlXA_QFQf-ioz";
+// ======================================================
+// SUPABASE CONFIGURATION
+// ======================================================
 
-// ----------------------------------------------
-// ตรวจสอบว่าโหลด Library แล้ว
-// ----------------------------------------------
+const SUPABASE_URL =
+"https://sftbzmwrrymlgbsmuima.supabase.co";
 
-if (!window.supabase) {
 
-    alert("ไม่พบ Supabase Library");
+const SUPABASE_ANON_KEY =
+"sb_publishable_J3UrucI0x66JEbHUQQHlXA_QFQf-ioz";
 
-    throw new Error("Supabase JS Library not found.");
+
+
+
+// ======================================================
+// CHECK SUPABASE LIBRARY
+// ======================================================
+
+
+if(typeof window.supabase === "undefined"){
+
+
+    console.error(
+        "Supabase JS Library not loaded"
+    );
+
+
+    alert(
+        "ไม่พบ Supabase Library"
+    );
+
+
+    throw new Error(
+        "Supabase Library Missing"
+    );
 
 }
 
-// ----------------------------------------------
-// Create Client
-// ----------------------------------------------
 
-const supabase = window.supabase.createClient(
+
+
+// ======================================================
+// CREATE SUPABASE CLIENT
+// ======================================================
+
+
+const supabaseClient =
+window.supabase.createClient(
+
     SUPABASE_URL,
+
     SUPABASE_ANON_KEY,
+
     {
-        auth: {
 
-            persistSession: true,
+        auth:{
 
-            autoRefreshToken: true,
 
-            detectSessionInUrl: true
+            autoRefreshToken:true,
+
+
+            persistSession:true,
+
+
+            detectSessionInUrl:true
+
 
         }
 
     }
+
 );
 
-// ----------------------------------------------
-// Console
-// ----------------------------------------------
 
-console.log("====================================");
-console.log("Military Directory");
-console.log("Supabase Connected");
-console.log(SUPABASE_URL);
-console.log("====================================");
 
-// ----------------------------------------------
-// Loading Button
-// ----------------------------------------------
 
-function showLoading(button, text = "กำลังดำเนินการ...") {
+// ======================================================
+// GLOBAL EXPORT
+// ======================================================
 
-    if (!button) return;
 
-    button.disabled = true;
+window.supabaseClient =
+supabaseClient;
 
-    button.dataset.oldText = button.innerHTML;
 
-    button.innerHTML = text;
+
+
+// ======================================================
+// DEBUG
+// ======================================================
+
+
+console.log(
+"===================================="
+);
+
+
+console.log(
+"Military Directory System"
+);
+
+
+console.log(
+"Supabase Connected"
+);
+
+
+console.log(
+SUPABASE_URL
+);
+
+
+console.log(
+"Client:",
+supabaseClient
+);
+
+
+console.log(
+"===================================="
+);
+
+
+
+
+
+// ======================================================
+// LOADING BUTTON
+// ======================================================
+
+
+function showLoading(
+
+    button,
+
+    text="กำลังดำเนินการ..."
+
+){
+
+
+    if(!button)
+        return;
+
+
+
+    button.disabled=true;
+
+
+
+    button.dataset.oldText =
+    button.innerHTML;
+
+
+
+    button.innerHTML =
+    text;
+
 
 }
 
-function hideLoading(button) {
 
-    if (!button) return;
 
-    button.disabled = false;
 
-    button.innerHTML = button.dataset.oldText || "บันทึก";
+
+function hideLoading(button){
+
+
+    if(!button)
+        return;
+
+
+
+    button.disabled=false;
+
+
+
+    button.innerHTML =
+
+    button.dataset.oldText
+
+    ||
+
+    "บันทึก";
+
 
 }
 
-// ----------------------------------------------
-// Alert
-// ----------------------------------------------
 
-function showSuccess(message) {
 
-    alert(message);
 
-}
 
-function showError(error) {
+// ======================================================
+// ALERT MESSAGE
+// ======================================================
 
-    console.error(error);
+
+function showSuccess(message){
+
 
     alert(
 
-        error?.message ||
+        message
 
-        error ||
+    );
+
+
+}
+
+
+
+
+function showError(error){
+
+
+    console.error(
+        error
+    );
+
+
+    alert(
+
+        error?.message
+
+        ||
+
+        error
+
+        ||
 
         "เกิดข้อผิดพลาด"
 
     );
 
-}
-
-// ----------------------------------------------
-// Current User
-// ----------------------------------------------
-
-async function getCurrentUser() {
-
-    const {
-
-        data,
-
-        error
-
-    } = await supabase.auth.getUser();
-
-    if (error) {
-
-        console.error(error);
-
-        return null;
-
-    }
-
-    return data.user;
 
 }
 
-// ----------------------------------------------
-// Session
-// ----------------------------------------------
 
-async function getSession() {
 
-    const {
 
-        data,
 
-        error
 
-    } = await supabase.auth.getSession();
+// ======================================================
+// AUTH FUNCTIONS
+// ======================================================
 
-    if (error) {
 
-        console.error(error);
 
-        return null;
+async function getCurrentUser(){
 
-    }
 
-    return data.session;
+    try{
 
-}
 
-// ----------------------------------------------
-// Login Required
-// ----------------------------------------------
+        const {
 
-async function requireLogin() {
+            data,
 
-    const session = await getSession();
+            error
 
-    if (!session) {
+        } =
 
-        location.replace("login.html");
+        await supabaseClient
+        .auth
+        .getUser();
 
-        return false;
 
-    }
 
-    return true;
+        if(error){
 
-}
 
-// ----------------------------------------------
-// Logout
-// ----------------------------------------------
+            console.error(error);
 
-async function logout() {
 
-    if (!confirm("ต้องการออกจากระบบใช่หรือไม่ ?"))
-
-        return;
-
-    const { error } =
-
-        await supabase.auth.signOut();
-
-    if (error) {
-
-        showError(error);
-
-        return;
-
-    }
-
-    localStorage.clear();
-
-    sessionStorage.clear();
-
-    location.replace("login.html");
-
-}
-
-// ----------------------------------------------
-// Page Ready
-// ----------------------------------------------
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    async () => {
-
-        if (
-
-            document.body.dataset.auth === "required"
-
-        ) {
-
-            await requireLogin();
+            return null;
 
         }
 
+
+
+        return data.user;
+
+
+
     }
 
-);
-
-console.log("window.supabase =", window.supabase);
-console.log("supabase =", supabase);
-console.log("supabase.from =", typeof supabase.from);
-console.log("supabase.auth =", typeof supabase.auth);
+    catch(err){
 
 
+        console.error(err);
+
+
+        return null;
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+async function getSession(){
+
+
+    try{
+
+
+        const {
+
+            data,
+
+            error
+
+        } =
+
+        await supabaseClient
+        .auth
+        .getSession();
+
+
+
+        if(error){
+
+
+            console.error(error);
+
+
+            return null;
+
+
+        }
+
+
+
+        return data.session;
+
+
+
+    }
+
+    catch(err){
+
+
+        console.error(err);
+
+
+        return null;
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+// ======================================================
+// REQUIRE LOGIN
+// ======================================================
+
+
+async function requireLogin(){
+
+
+
+    const session =
+
+    await getSession();
+
+
+
+
+    if(!session){
+
+
+
+        window.location.replace(
+
+            "login.html"
+
+        );
+
+
+        return false;
+
+
+    }
+
+
+
+    return true;
+
+
+}
+
+
+
+
+
+
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+
+async function logout(){
+
+
+
+    const confirmLogout =
+
+    confirm(
+
+        "ต้องการออกจากระบบใช่หรือไม่ ?"
+
+    );
+
+
+
+
+    if(!confirmLogout)
+
+        return;
+
+
+
+
+
+    const {
+
+        error
+
+    } =
+
+    await supabaseClient
+    .auth
+    .signOut();
+
+
+
+
+
+    if(error){
+
+
+
+        showError(error);
+
+
+        return;
+
+
+    }
+
+
+
+
+
+
+    localStorage.clear();
+
+
+    sessionStorage.clear();
+
+
+
+
+    window.location.replace(
+
+        "login.html"
+
+    );
+
+
+
+
+}
+
+
+
+
+
+
+
+
+// ======================================================
+// PAGE AUTH CHECK
+// ======================================================
+
+
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+async function(){
+
+
+
+    const authRequired =
+
+    document.body.dataset.auth;
+
+
+
+    if(authRequired==="required"){
+
+
+
+        await requireLogin();
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+// ======================================================
+// TEST CONNECTION
+// ======================================================
+
+
+async function testSupabase(){
+
+
+
+    const {
+
+        data,
+
+        error
+
+    } =
+
+    await supabaseClient
+    .from("personnel")
+    .select("id")
+    .limit(1);
+
+
+
+
+
+    if(error){
+
+
+
+        console.error(
+            "Database Error:",
+            error
+        );
+
+
+        return false;
+
+
+    }
+
+
+
+
+
+    console.log(
+
+        "Database OK",
+
+        data
+
+    );
+
+
+
+    return true;
+
+
+}
