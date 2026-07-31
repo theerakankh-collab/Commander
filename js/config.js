@@ -17,10 +17,11 @@ const SUPABASE_URL =
 "https://sftbzmwrrymlgbsmuima.supabase.co";
 
 
+// const SUPABASE_ANON_KEY =
+// "sb_publishable_J3UrucI0x66JEbHUQQHlXA_QFQf-ioz";
+
 const SUPABASE_ANON_KEY =
-"sb_publishable_J3UrucI0x66JEbHUQQHlXA_QFQf-ioz";
-
-
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmdGJ6bXdycnltbGdic211aW1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MjQ1NjksImV4cCI6MjEwMDIwMDU2OX0.m36eUQSYqdQc0Oa3WIx_3WaH2RvejamuMRgX98C7n_Q";
 
 
 // ======================================================
