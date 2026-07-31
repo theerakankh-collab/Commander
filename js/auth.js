@@ -1,67 +1,25 @@
-// ==============================================
+// =====================================================
 // auth.js
 // Military Directory System
 // Authentication Module
-// Version 2.0
-// ==============================================
+// Version 3.0
+// =====================================================
 
 "use strict";
 
-// ==============================================
-// Cache
-// ==============================================
+// =====================================================
+// CACHE
+// =====================================================
 
-let currentSession = null;
-let currentUser = null;
 let currentProfile = null;
 
-// ==============================================
-// Session
-// ==============================================
+// =====================================================
+// LOAD PROFILE
+// =====================================================
 
-async function getSession() {
+async function getProfile(refresh = false) {
 
-    if (currentSession) {
-        return currentSession;
-    }
-
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) throw error;
-
-    currentSession = data.session;
-
-    return currentSession;
-
-}
-
-// ==============================================
-// Current User
-// ==============================================
-
-async function getCurrentUser() {
-
-    if (currentUser) {
-        return currentUser;
-    }
-
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error) throw error;
-
-    currentUser = data.user;
-
-    return currentUser;
-
-}
-
-// ==============================================
-// Current Profile
-// ==============================================
-
-async function getProfile() {
-
-    if (currentProfile) {
+    if (!refresh && currentProfile) {
         return currentProfile;
     }
 
@@ -69,47 +27,31 @@ async function getProfile() {
 
     if (!user) return null;
 
-    const { data, error } = await supabase
-
+    const { data, error } = await supabaseClient
         .from("personnel")
-
         .select("*")
-
         .eq("auth_user_id", user.id)
+        .maybeSingle();
 
-        .single();
-
-    if (error) throw error;
+    if (error) {
+        console.error(error);
+        return null;
+    }
 
     currentProfile = data;
 
-    return data;
-
+    return currentProfile;
 }
 
-// ==============================================
-// Login Check
-// ==============================================
+// =====================================================
+// LOGIN CHECK
+// =====================================================
 
 async function checkLogin() {
 
-    try {
+    const session = await getSession();
 
-        const session = await getSession();
-
-        if (!session) {
-
-            window.location.replace("login.html");
-
-            return false;
-
-        }
-
-        return true;
-
-    } catch (err) {
-
-        console.error(err);
+    if (!session) {
 
         window.location.replace("login.html");
 
@@ -117,171 +59,85 @@ async function checkLogin() {
 
     }
 
-}
-
-// ==============================================
-// Logged In ?
-// ==============================================
-
-async function isLoggedIn() {
-
-    return (await getSession()) !== null;
+    return true;
 
 }
 
-// ==============================================
-// Show Current User
-// ==============================================
+// =====================================================
+// SHOW USER
+// =====================================================
 
 async function showCurrentUser() {
 
-    try {
+    const profile = await getProfile();
 
-        const profile = await getProfile();
+    if (!profile) return;
 
-        if (!profile) return;
+    const userName = document.getElementById("userName");
 
-        const obj = document.getElementById("userName");
+    if (userName) {
 
-        if (!obj) return;
-
-        obj.textContent =
-
+        userName.textContent =
             `${profile.rank} ${profile.firstname} ${profile.lastname}`;
 
     }
 
-    catch (err) {
-
-        console.error(err);
-
-    }
-
 }
 
-// ==============================================
-// Role
-// ==============================================
+// =====================================================
+// ROLE
+// =====================================================
 
 async function getRole() {
 
     const profile = await getProfile();
 
-    return profile ? profile.role : null;
+    return profile?.role ?? "user";
 
 }
 
-// ==============================================
-// Check Role
-// ==============================================
-
-async function checkRole(requiredRole) {
+async function hasRole(...roles) {
 
     const role = await getRole();
 
-    return role === requiredRole;
+    return roles.includes(role);
 
 }
 
-// ==============================================
-// Admin
-// ==============================================
+// =====================================================
+// PERMISSION
+// =====================================================
+
+async function requireRole(...roles) {
+
+    const ok = await hasRole(...roles);
+
+    if (ok) return;
+
+    alert("ไม่มีสิทธิ์ใช้งาน");
+
+    location.replace("dashboard.html");
+
+}
 
 async function requireAdmin() {
 
-    const role = await getRole();
-
-    if (role !== "admin") {
-
-        alert("ไม่มีสิทธิ์ใช้งาน");
-
-        window.location.replace("dashboard.html");
-
-    }
+    await requireRole("admin");
 
 }
-
-// ==============================================
-// Commander
-// ==============================================
 
 async function requireCommander() {
 
-    const role = await getRole();
-
-    if (
-
-        role !== "admin" &&
-
-        role !== "commander"
-
-    ) {
-
-        alert("ไม่มีสิทธิ์ใช้งาน");
-
-        window.location.replace("dashboard.html");
-
-    }
+    await requireRole(
+        "admin",
+        "commander"
+    );
 
 }
 
-// ==============================================
-// User
-// ==============================================
-
-async function requireUser() {
-
-    const ok = await checkLogin();
-
-    if (!ok) {
-
-        window.location.replace("login.html");
-
-    }
-
-}
-
-// ==============================================
-// Logout
-// ==============================================
-
-async function logout() {
-
-    try {
-
-        const { error } =
-
-            await supabase.auth.signOut();
-
-        if (error) throw error;
-
-        currentSession = null;
-        currentUser = null;
-        currentProfile = null;
-
-        window.location.replace("login.html");
-
-    }
-
-    catch (err) {
-
-        alert(err.message);
-
-    }
-
-}
-
-// ==============================================
-
-function logoutSystem() {
-
-    logout();
-
-}
-
-// ==============================================
-// Helpers
-// ==============================================
+// =====================================================
+// HELPERS
+// =====================================================
 
 function isAdmin() {
 
@@ -301,39 +157,39 @@ function isUser() {
 
 }
 
-// ==============================================
-// Error
-// ==============================================
+// =====================================================
+// REFRESH PROFILE
+// =====================================================
 
-function showError(err) {
+async function refreshProfile() {
 
-    const msg = document.getElementById("msg");
+    currentProfile = null;
 
-    if (msg) {
-
-        msg.classList.remove("d-none");
-
-        msg.textContent = err.message || err;
-
-    } else {
-
-        alert(err.message || err);
-
-    }
+    return await getProfile(true);
 
 }
 
-// ==============================================
-// Auth Listener
-// ==============================================
+// =====================================================
+// AUTH LISTENER
+// =====================================================
 
-supabase.auth.onAuthStateChange(
+supabaseClient.auth.onAuthStateChange(
 
-    (event, session) => {
+    async (event, session) => {
 
-        currentSession = session;
+        if (!session) {
 
-        currentUser = session?.user || null;
+            currentProfile = null;
+
+            if (document.body.dataset.auth === "required") {
+
+                location.replace("login.html");
+
+            }
+
+            return;
+
+        }
 
         currentProfile = null;
 
@@ -341,9 +197,9 @@ supabase.auth.onAuthStateChange(
 
 );
 
-// ==============================================
-// Auto Load
-// ==============================================
+// =====================================================
+// PAGE LOAD
+// =====================================================
 
 document.addEventListener(
 
@@ -351,15 +207,15 @@ document.addEventListener(
 
     async () => {
 
-        if (document.body.dataset.auth === "required") {
+        if (
+            document.body.dataset.auth === "required"
+        ) {
 
             const ok = await checkLogin();
 
-            if (ok) {
+            if (!ok) return;
 
-                await showCurrentUser();
-
-            }
+            await showCurrentUser();
 
         }
 
