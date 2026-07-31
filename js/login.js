@@ -1,16 +1,25 @@
-// ==============================================
+// =====================================================
 // login.js
 // Military Directory System
-// Version 3.1
-// ==============================================
+// Version 4.0
+// =====================================================
 
 "use strict";
 
-// ==============================================
-// Initial
-// ==============================================
+// =====================================================
+// INITIALIZE
+// =====================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    if (typeof window.supabaseClient === "undefined") {
+
+        alert("ไม่สามารถเชื่อมต่อระบบได้ (Supabase Client)");
+
+        console.error("supabaseClient not found");
+
+        return;
+    }
 
     checkAlreadyLogin();
 
@@ -20,11 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
         form.addEventListener("submit", loginSubmit);
     }
 
+    initPasswordToggle();
+
 });
 
-// ==============================================
-// Login แล้วหรือยัง
-// ==============================================
+// =====================================================
+// CHECK LOGIN
+// =====================================================
 
 async function checkAlreadyLogin() {
 
@@ -38,9 +49,7 @@ async function checkAlreadyLogin() {
 
         }
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error(err);
 
@@ -48,13 +57,13 @@ async function checkAlreadyLogin() {
 
 }
 
-// ==============================================
-// Login
-// ==============================================
+// =====================================================
+// LOGIN
+// =====================================================
 
-async function loginSubmit(event) {
+async function loginSubmit(e) {
 
-    event.preventDefault();
+    e.preventDefault();
 
     clearMessage();
 
@@ -64,13 +73,19 @@ async function loginSubmit(event) {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
 
-    // ----------------------------
-    // Validation
-    // ----------------------------
-
     if (!email) {
 
         showMessage("กรุณากรอกอีเมล");
+
+        emailInput.focus();
+
+        return;
+
+    }
+
+    if (!emailInput.checkValidity()) {
+
+        showMessage("รูปแบบอีเมลไม่ถูกต้อง");
 
         emailInput.focus();
 
@@ -88,38 +103,20 @@ async function loginSubmit(event) {
 
     }
 
-    if (!emailInput.checkValidity()) {
-
-        showMessage("รูปแบบอีเมลไม่ถูกต้อง");
-
-        emailInput.focus();
-
-        return;
-
-    }
-
     setLoading(true);
 
     try {
 
-        const {
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
 
-            data,
+                email: email,
 
-            error
+                password: password
 
-        } = await supabase.auth.signInWithPassword({
+            });
 
-            email,
-            password
-
-        });
-
-        if (error) {
-
-            throw error;
-
-        }
+        if (error) throw error;
 
         if (!data.user) {
 
@@ -127,7 +124,13 @@ async function loginSubmit(event) {
 
         }
 
-        window.location.replace("dashboard.html");
+        showMessage("เข้าสู่ระบบสำเร็จ", "success");
+
+        setTimeout(() => {
+
+            window.location.replace("dashboard.html");
+
+        }, 500);
 
     }
 
@@ -149,9 +152,15 @@ async function loginSubmit(event) {
 
                 break;
 
+            case "Failed to fetch":
+
+                showMessage("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+
+                break;
+
             default:
 
-                showMessage(err.message);
+                showMessage(err.message || "เกิดข้อผิดพลาด");
 
         }
 
@@ -165,9 +174,53 @@ async function loginSubmit(event) {
 
 }
 
-// ==============================================
-// Loading
-// ==============================================
+// =====================================================
+// PASSWORD TOGGLE
+// =====================================================
+
+function initPasswordToggle() {
+
+    const toggleBtn = document.getElementById("togglePassword");
+
+    if (!toggleBtn) return;
+
+    toggleBtn.addEventListener("click", () => {
+
+        const password = document.getElementById("password");
+
+        const icon = toggleBtn.querySelector("i");
+
+        if (!password) return;
+
+        if (password.type === "password") {
+
+            password.type = "text";
+
+            if (icon) {
+
+                icon.className = "bi bi-eye-slash";
+
+            }
+
+        } else {
+
+            password.type = "password";
+
+            if (icon) {
+
+                icon.className = "bi bi-eye";
+
+            }
+
+        }
+
+    });
+
+}
+
+// =====================================================
+// BUTTON LOADING
+// =====================================================
 
 function setLoading(status) {
 
@@ -193,9 +246,9 @@ function setLoading(status) {
 
 }
 
-// ==============================================
-// Alert Message
-// ==============================================
+// =====================================================
+// MESSAGE
+// =====================================================
 
 function showMessage(message, type = "danger") {
 
@@ -209,7 +262,7 @@ function showMessage(message, type = "danger") {
 
     }
 
-    msg.className = `alert alert-${type} mt-3`;
+    msg.className = `alert alert-${type}`;
 
     msg.textContent = message;
 
@@ -229,63 +282,19 @@ function clearMessage() {
 
 }
 
-// ==============================================
-// Password Toggle
-// ==============================================
+// =====================================================
+// ENTER KEY
+// =====================================================
 
-const toggleBtn = document.getElementById("togglePassword");
+document.addEventListener("keydown", (e) => {
 
-if (toggleBtn) {
+    if (e.key !== "Enter") return;
 
-    toggleBtn.addEventListener("click", () => {
+    const form = document.getElementById("loginForm");
 
-        const password = document.getElementById("password");
+    if (form) {
 
-        const icon = toggleBtn.querySelector("i");
-
-        if (password.type === "password") {
-
-            password.type = "text";
-
-            if (icon) {
-
-                icon.className = "bi bi-eye-slash";
-
-            }
-
-        }
-
-        else {
-
-            password.type = "password";
-
-            if (icon) {
-
-                icon.className = "bi bi-eye";
-
-            }
-
-        }
-
-    });
-
-}
-
-// ==============================================
-// Enter Key
-// ==============================================
-
-document.addEventListener("keypress", function (e) {
-
-    if (e.key === "Enter") {
-
-        const form = document.getElementById("loginForm");
-
-        if (form) {
-
-            form.requestSubmit();
-
-        }
+        form.requestSubmit();
 
     }
 
