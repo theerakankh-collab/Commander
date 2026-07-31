@@ -8,7 +8,9 @@
 
     <title>เข้าสู่ระบบ | Military Directory</title>
 
-    <link rel="icon" href="images/favicon.ico">
+    <meta name="description" content="Military Directory System">
+
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +29,7 @@
 
 </head>
 
-<body class="login-page">
+<body class="login-page" data-page="login">
 
 <div class="container">
 
@@ -39,7 +41,9 @@
 
 <div class="card-body p-4">
 
+<!-- ===================================== -->
 <!-- Logo -->
+<!-- ===================================== -->
 
 <div class="text-center mb-3">
 
@@ -47,15 +51,17 @@
 
 src="images/logo.png"
 
-alt="Logo"
+alt="Military Directory"
 
-class="img-fluid"
+width="90"
 
-style="width:90px;">
+height="90"
+
+class="img-fluid">
 
 </div>
 
-<h3 class="text-center fw-bold text-success">
+<h3 class="text-center fw-bold text-success mb-1">
 
 Military Directory
 
@@ -67,11 +73,25 @@ Military Directory
 
 </p>
 
-<form id="loginForm" novalidate>
+<!-- ===================================== -->
+<!-- Login Form -->
+<!-- ===================================== -->
+
+<form
+
+id="loginForm"
+
+autocomplete="on"
+
+novalidate>
 
 <div class="mb-3">
 
-<label for="email" class="form-label">
+<label
+
+for="email"
+
+class="form-label">
 
 <i class="bi bi-envelope-fill"></i>
 
@@ -82,6 +102,8 @@ Military Directory
 <input
 
 id="email"
+
+name="email"
 
 type="email"
 
@@ -99,7 +121,11 @@ required>
 
 <div class="mb-3">
 
-<label for="password" class="form-label">
+<label
+
+for="password"
+
+class="form-label">
 
 <i class="bi bi-lock-fill"></i>
 
@@ -113,6 +139,8 @@ required>
 
 id="password"
 
+name="password"
+
 type="password"
 
 class="form-control"
@@ -125,11 +153,13 @@ required>
 
 <button
 
-class="btn btn-outline-secondary"
+id="togglePassword"
 
 type="button"
 
-id="togglePassword">
+class="btn btn-outline-secondary"
+
+aria-label="แสดงหรือซ่อนรหัสผ่าน">
 
 <i class="bi bi-eye"></i>
 
@@ -139,17 +169,19 @@ id="togglePassword">
 
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
 
 <div class="form-check">
 
 <input
 
+id="remember"
+
+name="remember"
+
 class="form-check-input"
 
-type="checkbox"
-
-id="remember">
+type="checkbox">
 
 <label
 
@@ -181,7 +213,9 @@ id="loginBtn"
 
 type="submit"
 
-class="btn btn-success w-100 py-2">
+class="btn btn-success w-100 py-2"
+
+aria-label="เข้าสู่ระบบ">
 
 <span id="btnText">
 
@@ -193,7 +227,11 @@ class="btn btn-success w-100 py-2">
 
 id="btnLoading"
 
-class="spinner-border spinner-border-sm d-none">
+class="spinner-border spinner-border-sm d-none"
+
+role="status"
+
+aria-hidden="true">
 
 </span>
 
@@ -201,15 +239,25 @@ class="spinner-border spinner-border-sm d-none">
 
 </form>
 
+<!-- ===================================== -->
+<!-- Message -->
+<!-- ===================================== -->
+
 <div
 
 id="msg"
 
-class="alert alert-danger d-none mt-3 mb-0">
+class="alert alert-danger d-none mt-3"
+
+role="alert">
 
 </div>
 
 <hr>
+
+<!-- ===================================== -->
+<!-- Footer -->
+<!-- ===================================== -->
 
 <div class="text-center">
 
@@ -219,7 +267,15 @@ Military Directory System
 
 <br>
 
-Version 1.0
+Version 2.0
+
+</small>
+
+<br>
+
+<small class="text-muted">
+
+© 2026 Military Directory
 
 </small>
 
@@ -235,6 +291,10 @@ Version 1.0
 
 </div>
 
+<!-- ===================================== -->
+<!-- JavaScript -->
+<!-- ===================================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="js/config.js"></script>
@@ -242,34 +302,6 @@ Version 1.0
 <script src="js/auth.js"></script>
 
 <script src="js/login.js"></script>
-
-<script>
-
-const toggle=document.getElementById("togglePassword");
-
-toggle.addEventListener("click",()=>{
-
-const pwd=document.getElementById("password");
-
-const icon=toggle.querySelector("i");
-
-if(pwd.type==="password"){
-
-pwd.type="text";
-
-icon.className="bi bi-eye-slash";
-
-}else{
-
-pwd.type="password";
-
-icon.className="bi bi-eye";
-
-}
-
-});
-
-</script>
 
 </body>
 
