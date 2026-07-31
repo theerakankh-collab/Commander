@@ -1,30 +1,30 @@
-// ==========================================
+// ==============================================
 // login.js
 // Military Directory System
-// Version 2.0
-// ==========================================
+// Version 3.1
+// ==============================================
 
 "use strict";
 
+// ==============================================
+// Initial
+// ==============================================
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    // ถ้า Login อยู่แล้ว ให้เข้าหน้า Dashboard
     checkAlreadyLogin();
 
-    // Form Login
     const form = document.getElementById("loginForm");
 
     if (form) {
-
         form.addEventListener("submit", loginSubmit);
-
     }
 
 });
 
-// ==========================================
-// ถ้า Login แล้ว
-// ==========================================
+// ==============================================
+// Login แล้วหรือยัง
+// ==============================================
 
 async function checkAlreadyLogin() {
 
@@ -38,7 +38,9 @@ async function checkAlreadyLogin() {
 
         }
 
-    } catch (err) {
+    }
+
+    catch (err) {
 
         console.error(err);
 
@@ -46,76 +48,59 @@ async function checkAlreadyLogin() {
 
 }
 
-// ==========================================
+// ==============================================
 // Login
-// ==========================================
+// ==============================================
 
 async function loginSubmit(event) {
 
     event.preventDefault();
 
-    const email =
-        document.getElementById("email")
-        .value
-        .trim();
+    clearMessage();
 
-    const password =
-        document.getElementById("password")
-        .value
-        .trim();
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
 
-    const msg =
-        document.getElementById("msg");
-
-    const btn =
-        document.getElementById("loginBtn");
-
-    msg.textContent = "";
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
 
     // ----------------------------
     // Validation
     // ----------------------------
 
-    if (email === "") {
+    if (!email) {
 
-        msg.textContent =
-            "กรุณากรอก Email";
+        showMessage("กรุณากรอกอีเมล");
 
-        return;
-
-    }
-
-    if (password === "") {
-
-        msg.textContent =
-            "กรุณากรอกรหัสผ่าน";
+        emailInput.focus();
 
         return;
 
     }
 
-    // ตรวจสอบรูปแบบ Email
+    if (!password) {
 
-    const emailPattern =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        showMessage("กรุณากรอกรหัสผ่าน");
 
-    if (!emailPattern.test(email)) {
-
-        msg.textContent =
-            "รูปแบบ Email ไม่ถูกต้อง";
+        passwordInput.focus();
 
         return;
 
     }
+
+    if (!emailInput.checkValidity()) {
+
+        showMessage("รูปแบบอีเมลไม่ถูกต้อง");
+
+        emailInput.focus();
+
+        return;
+
+    }
+
+    setLoading(true);
 
     try {
-
-        showLoading(
-            btn,
-            "กำลังเข้าสู่ระบบ..."
-        );
-
-        // Login
 
         const {
 
@@ -126,41 +111,23 @@ async function loginSubmit(event) {
         } = await supabase.auth.signInWithPassword({
 
             email,
-
             password
 
         });
 
-        if (error)
+        if (error) {
+
             throw error;
-
-        // เก็บ User ID
-
-        if (data.user) {
-
-            localStorage.setItem(
-
-                "user_id",
-
-                data.user.id
-
-            );
-
-            localStorage.setItem(
-
-                "user_email",
-
-                data.user.email
-
-            );
 
         }
 
-        showSuccess("เข้าสู่ระบบสำเร็จ");
+        if (!data.user) {
 
-        window.location.replace(
-            "dashboard.html"
-        );
+            throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
+
+        }
+
+        window.location.replace("dashboard.html");
 
     }
 
@@ -168,46 +135,158 @@ async function loginSubmit(event) {
 
         console.error(err);
 
-        msg.textContent =
-            err.message;
+        switch (err.message) {
+
+            case "Invalid login credentials":
+
+                showMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+
+                break;
+
+            case "Email not confirmed":
+
+                showMessage("กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ");
+
+                break;
+
+            default:
+
+                showMessage(err.message);
+
+        }
 
     }
 
     finally {
 
-        hideLoading(btn);
+        setLoading(false);
 
     }
 
 }
 
-// ==========================
-// Loading Button
-// ==========================
-function showLoading(btn, text = "กำลังโหลด...") {
+// ==============================================
+// Loading
+// ==============================================
+
+function setLoading(status) {
+
+    const btn = document.getElementById("loginBtn");
+    const text = document.getElementById("btnText");
+    const spinner = document.getElementById("btnLoading");
 
     if (!btn) return;
 
-    btn.disabled = true;
-    btn.dataset.oldText = btn.innerHTML;
-    btn.innerHTML = text;
+    btn.disabled = status;
+
+    if (text) {
+
+        text.classList.toggle("d-none", status);
+
+    }
+
+    if (spinner) {
+
+        spinner.classList.toggle("d-none", !status);
+
+    }
 
 }
 
-function hideLoading(btn) {
+// ==============================================
+// Alert Message
+// ==============================================
 
-    if (!btn) return;
+function showMessage(message, type = "danger") {
 
-    btn.disabled = false;
-    btn.innerHTML = btn.dataset.oldText || "เข้าสู่ระบบ";
+    const msg = document.getElementById("msg");
+
+    if (!msg) {
+
+        alert(message);
+
+        return;
+
+    }
+
+    msg.className = `alert alert-${type} mt-3`;
+
+    msg.textContent = message;
+
+    msg.classList.remove("d-none");
 
 }
 
-// ==========================
-// Success Message
-// ==========================
-function showSuccess(text) {
+function clearMessage() {
 
-    alert(text);
+    const msg = document.getElementById("msg");
+
+    if (!msg) return;
+
+    msg.classList.add("d-none");
+
+    msg.textContent = "";
 
 }
+
+// ==============================================
+// Password Toggle
+// ==============================================
+
+const toggleBtn = document.getElementById("togglePassword");
+
+if (toggleBtn) {
+
+    toggleBtn.addEventListener("click", () => {
+
+        const password = document.getElementById("password");
+
+        const icon = toggleBtn.querySelector("i");
+
+        if (password.type === "password") {
+
+            password.type = "text";
+
+            if (icon) {
+
+                icon.className = "bi bi-eye-slash";
+
+            }
+
+        }
+
+        else {
+
+            password.type = "password";
+
+            if (icon) {
+
+                icon.className = "bi bi-eye";
+
+            }
+
+        }
+
+    });
+
+}
+
+// ==============================================
+// Enter Key
+// ==============================================
+
+document.addEventListener("keypress", function (e) {
+
+    if (e.key === "Enter") {
+
+        const form = document.getElementById("loginForm");
+
+        if (form) {
+
+            form.requestSubmit();
+
+        }
+
+    }
+
+});
